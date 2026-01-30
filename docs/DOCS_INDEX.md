@@ -31,6 +31,7 @@
 - `docs/verification/MFDC_Master_Document_RU.md` — master-архитектура V&V (пирамиды тестов, SIL/HIL, критерии выхода).
 - `docs/verification/MFDC_Verification_Plan_RU.md` — formal verification plan (критерии PASS/FAIL и уровни).
 - `docs/verification/MFDC_Red_Team_Review_RU.md` — red-team (слепые зоны SIL/HIL, аппаратные/интеграционные риски).
+- `docs/verification/MFDC_SIL_First_Build_Contract_RU.md` — контракт SIL-first: host L1/L2 через CMake+CTest + интеграция с Jenkins.
 
 ---
 
