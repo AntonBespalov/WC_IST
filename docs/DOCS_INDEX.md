@@ -1,0 +1,39 @@
+# Каталог документов проекта (каноника)
+
+Все документы проекта хранятся и актуализируются **только** в `docs/`.
+Задача этого файла — быстро находить нужный документ и не таскать всё в контекст.
+
+Статус индекса: обновлено на **2026-01-29**.
+
+---
+
+## Safety / Functional Safety
+- `docs/safety/SAFETY_CONCEPT_CBM706T_RU.md` — Safety Concept (fail-safe остановка, CBM706T как FAULT/RESET, latched-off).
+- `docs/safety/SFAT_and_Timing_Budget_MFDC_ru.md` — SFAT + бюджет времени реакции (вплоть до мкс).
+- `docs/safety/FMEA-001_MFDC_Source.md` — FMEA-lite (критичные отказы и контрмеры).
+- `docs/reviews/MFDC_Red_Team_Design_Review.md` — red-team дизайн-ревью (где сломается в реальности).
+- `docs/safety/Unified_Safety_by_Design_MFDC.md` — обзор сертификации и Safety-by-Design.
+- `docs/safety/DAP_MFDC_ru.md` и `docs/safety/Design_Assurance_Package_MFDC.md` — DAP (карта safety-функций и V&V).
+
+---
+
+## Измерения / Контур тока / Fault model
+- `docs/measurements/MEASUREMENT_ARCHITECTURE_RU.md` — архитектура измерения/усреднения/энергии (ключевой инвариант: усреднение по периоду ШИМ).
+- `docs/design-notes/DN-TEMPLATE.md` — шаблон Design Note (DN) для фиксации “spec из чата” в репозитории.
+- `docs/design-notes/DN-001_MFDC_Current_Control.md` — DN-001 (нормативные SHALL/SHALL NOT требования к контуру тока и контракту с ТК).
+- `docs/theory/MFDC_Current_Loop_and_Fault_Model_STM32G474.md` — детализация PI+ограничения+fault-model.
+- `docs/theory/MFDC_Software_Architecture_STM32G474.md` — архитектура ПО (fast/slow слои).
+- `docs/theory/MFDC_Welding_Power_Source_Software_Architecture.md` — единый инженерный обзор (роль трансформатора, R_dyn(t)).
+
+---
+
+## Верификация / Тестирование
+- `docs/verification/MFDC_Master_Document_RU.md` — master-архитектура V&V (пирамиды тестов, SIL/HIL, критерии выхода).
+- `docs/verification/MFDC_Verification_Plan_RU.md` — formal verification plan (критерии PASS/FAIL и уровни).
+- `docs/verification/MFDC_Red_Team_Review_RU.md` — red-team (слепые зоны SIL/HIL, аппаратные/интеграционные риски).
+
+---
+
+## Skills/LLM workflow (мета)
+- `docs/meta/LLM_SKILLS_GUIDE_RU.md` — принципы Ground Truth, как использовать docs/skills с Codex.
+- `docs/HOW_TO_USE_RU.md` — mind map + памятка (onboarding): как пользоваться docs/ + skills/ в проекте.

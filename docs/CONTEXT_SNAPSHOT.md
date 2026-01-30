@@ -1,0 +1,31 @@
+# Контекст проекта — короткий снимок (Context Snapshot)
+
+Назначение: короткая вставка в запросы к Codex, чтобы не тащить весь контекст.
+Источник правды: `docs/PROJECT_CONTEXT.md` и `docs/GLOSSARY.md` (каталог доп. документов: `docs/DOCS_INDEX.md`).
+
+## Hardware/RTOS
+- MCU: STM32G474 (STM32G4)
+- Архитектура ПО: fast loop без RTOS (ISR/таймер) + slow loop FreeRTOS
+- PWM (MFDC-инвертор): TIM1, 1–4 кГц, Break BKIN/BKIN2
+- Gate drivers: 2× SKYPER 42 R → 4× SEMiX252GB12
+- Измерения: Rogowski (через интегратор) + AD7380 (I_weld/U_weld, SPI+DMA)
+- Внешний супервизор: CBM706T (FAULT/RESET роли разделены)
+
+## Тайминги
+- Команды ТК приходят с периодом 1 мс; источник отвечает статусом/измерениями.
+- Шаг управления током: 1 раз на период PWM (детерминированно).
+- Инвариант измерений: I и U используются как **усреднённые по периоду PWM**; энергия/мощность — по `mean(I*U)`.
+
+## Safety (главное)
+- Критические аварии должны выключать силовую часть аппаратно: TIM1 BKIN/BKIN2.
+- Желателен независимый запрет драйверов: DRV_EN/INH.
+- Нет авто-рестарта после критического fault (latch до явного recovery).
+- Watchdog (в т.ч. внешний) должен приводить к safe state аппаратно.
+- Потеря команд ТК > N мс (N TBD) => останов сварки + статус ошибки.
+- Устойчиво невалидные измерения (timeout/stuck/sat/CRC) => запрет сварки (не “варим вслепую”).
+
+## Наблюдаемость
+- Минимум debug-пинов: DBG_CTRL_TICK, DBG_ADC_START, DBG_ADC_READY, DBG_PWM_APPLY, DBG_FAULT_ENTRY
+- Измерять: BKIN_RAW и PWM_OUT (TIM1_CHx/CHxN)
+- Осциллографирование/логирование: USB-UART → ПК (не блокировать fast loop; буферизация).
+- Если есть PSRAM: record/replay с pre/post trigger на fault.
