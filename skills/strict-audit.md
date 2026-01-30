@@ -28,7 +28,7 @@ outputs:
 - недетерминизму таймингов в критических доменах.
 
 ## Источники правды
-Приоритет: `docs/PROJECT_CONTEXT.md` → `docs/GLOSSARY.md` → `docs/ARCHITECTURE.md` → `docs/SAFETY.md` → `docs/PROTOCOL_TK.md` → `docs/TEST_PLAN.md` → остальное (см. каталог: `docs/DOCS_INDEX.md`).
+Приоритет: `docs/PROJECT_CONTEXT.md` → `docs/GLOSSARY.md` → `docs/ARCHITECTURE.md` → `docs/SAFETY.md` → `docs/protocols/PROTOCOL_TK.md` → `docs/protocols/PCCOM4.02.md` → `docs/TEST_PLAN.md` → остальное (см. каталог: `docs/DOCS_INDEX.md`).
 
 ## Правила аудита
 1) **No-Go policy**

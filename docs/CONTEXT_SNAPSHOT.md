@@ -28,4 +28,5 @@
 - Минимум debug-пинов: DBG_CTRL_TICK, DBG_ADC_START, DBG_ADC_READY, DBG_PWM_APPLY, DBG_FAULT_ENTRY
 - Измерять: BKIN_RAW и PWM_OUT (TIM1_CHx/CHxN)
 - Осциллографирование/логирование: USB-UART → ПК (не блокировать fast loop; буферизация в SRAM).
+- Протокол “плата ↔ ПК” по USB-UART: PCcom4 (см. `docs/protocols/PCCOM4.02.md`).
 - Резерв для record/replay/накопления: FRAM CY15B104Q-PZXI (QSPI), если пропускной способности USB-UART не хватает (политика включения — TBD).

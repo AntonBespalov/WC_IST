@@ -81,8 +81,8 @@
 - Политика таймаутов:
   - Soft-timeout: TBD (обычно несколько миллисекунд) → контролируемый спад/stop по политике
   - Hard-timeout: TBD → **запрет сварки + FAULT**
-  - Обработка bus-off/ошибок линии: TBD (фиксируется в `docs/PROTOCOL_TK.md`)
-- Осциллографирование/логирование процессов: **USB-UART → ПК** (не блокировать fast loop; буферизация в SRAM/DMA)
+  - Обработка bus-off/ошибок линии: TBD (фиксируется в `docs/protocols/PROTOCOL_TK.md`)
+- Интерфейс “плата ↔ ПК” по USB-UART: **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой CAN-кадров, см. `docs/protocols/PCCOM4.02.md`)
 
 ---
 
@@ -134,5 +134,7 @@
 - Каталог документов: `docs/DOCS_INDEX.md`
 - Архитектура ПО: `docs/ARCHITECTURE.md`
 - Политика безопасности/аварий: `docs/SAFETY.md`
+- Протокол ТК (CAN): `docs/protocols/PROTOCOL_TK.md`
+- Протокол плата ↔ ПК (USB-UART, PCcom4): `docs/protocols/PCCOM4.02.md`
 - План тестов: `docs/TEST_PLAN.md`
 - Skills: `skills/README.md`

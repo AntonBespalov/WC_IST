@@ -9,7 +9,8 @@ Skills версионируются вместе с проектом.
 - `docs/GLOSSARY.md` — единые определения терминов
 - `docs/ARCHITECTURE.md` — модульные границы и тестируемость (host/SIL/HIL/on-target)
 - `docs/SAFETY.md` — классы аварий, latch/recovery, watchdog, shutdown-path
-- `docs/PROTOCOL_TK.md` — протокол обмена с ТК
+- `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
+- `docs/protocols/PCCOM4.02.md` — протокол плата ↔ ПК (USB-UART, PCcom4)
 - `docs/TEST_PLAN.md` — уровни тестирования и регрессия
 
 Если skill противоречит контексту/словарю/архитектуре/safety — приоритет у документов из `docs/`, либо предложи правку.

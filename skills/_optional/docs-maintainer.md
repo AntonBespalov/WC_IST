@@ -35,7 +35,11 @@ outputs:
 
 3.  **Протокол / Обмен с ТК**
     - Если изменились: формат кадров, ID сообщений, таймауты, коды ошибок (Fault Codes).
-    - **Обнови:** `docs/PROTOCOL_TK.md` и `docs/GLOSSARY.md`.
+    - **Обнови:** `docs/protocols/PROTOCOL_TK.md` и `docs/GLOSSARY.md`.
+
+3.1 **Протокол / Обмен с ПК (USB-UART, PCcom4)**
+    - Если изменились: фрейминг PCcom4, правила CRC/длины/ресинхронизации, режимы отладки (например, обёртка CAN-кадров).
+    - **Обнови:** `docs/protocols/PCCOM4.02.md`, `docs/PROJECT_CONTEXT.md` и `docs/TEST_PLAN.md`.
 
 4.  **Архитектура / Модули**
     - Если появились новые FreeRTOS задачи, очереди или модули.

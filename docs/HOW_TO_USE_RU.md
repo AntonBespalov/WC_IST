@@ -11,11 +11,12 @@
 3) `docs/GLOSSARY.md` — единые определения терминов.
 4) `docs/ARCHITECTURE.md` — границы модулей, fast/slow домены, тестируемость.
 5) `docs/SAFETY.md` — политика аварий, latch/recovery, watchdog, shutdown-path, proof obligations.
-6) `docs/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/сценарии.
-7) `docs/TEST_PLAN.md` — минимальная регрессия и требуемые доказательства.
-8) `docs/CONTEXT_SNAPSHOT.md` — короткая вставка контекста для запросов к Codex.
-9) `docs/README.md` и `docs/DOCS_INDEX.md` — навигация (что где лежит).
-10) `docs/CODING_STANDARD_RU.md` — стандарт кода: язык комментариев и кодировка.
+6) `docs/protocols/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/сценарии.
+7) `docs/protocols/PCCOM4.02.md` — PCcom4 (плата ↔ ПК по USB-UART): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
+8) `docs/TEST_PLAN.md` — минимальная регрессия и требуемые доказательства.
+9) `docs/CONTEXT_SNAPSHOT.md` — короткая вставка контекста для запросов к Codex.
+10) `docs/README.md` и `docs/DOCS_INDEX.md` — навигация (что где лежит).
+11) `docs/CODING_STANDARD_RU.md` — стандарт кода: язык комментариев и кодировка.
 
 ## 0) Mind map (карта системы)
 
@@ -29,7 +30,8 @@ mindmap
       GLOSSARY.md
       ARCHITECTURE.md
       SAFETY.md
-      PROTOCOL_TK.md
+      protocols/PROTOCOL_TK.md
+      protocols/PCCOM4.02.md
       TEST_PLAN.md
       DOCS_INDEX.md
         deep docs
@@ -65,6 +67,9 @@ mindmap
       Команда 1 мс => Статус 1 мс
       Seq/CRC/Timeouts
       State machine: IDLE/ARMED/WELD/FAULT
+    Протокол плата ↔ ПК (USB-UART)
+      PCcom4 (protocols/PCCOM4.02.md)
+      Настройка / осциллографирование / отладка (туннель CAN)
     Тестирование и доказательства
       L0..L5 (unit/SIL/on-target/HIL/bench)
       Минимальная регрессия R1..R10
@@ -87,7 +92,7 @@ mindmap
 3) `docs/GLOSSARY.md` — термины (чтобы одинаково понимать “safe state”, “latch”, “overrun”, “BKIN”).
 4) `docs/ARCHITECTURE.md` — модульные границы и тестируемость (host/SIL/HIL/on-target).
 5) `docs/SAFETY.md` и `docs/safety/*` — политика аварий, latch/recovery, shutdown-path, timing budget.
-6) `docs/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/тестовые сценарии.
+6) `docs/protocols/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/тестовые сценарии.
 7) `docs/TEST_PLAN.md` — уровни тестов и “минимальная регрессия” (что обязаны доказать).
 
 ---
@@ -107,7 +112,8 @@ mindmap
 - Fault-model (HARD/SOFT/LIMIT, latch policy, реакции по слоям): `docs/theory/MFDC_Current_Loop_and_Fault_Model_STM32G474.md` + `docs/SAFETY.md`.
 - Safety shutdown-path (BKIN/DRV_EN, no auto-restart, watchdog, CBM706T роли): `docs/SAFETY.md` + `docs/safety/SAFETY_CONCEPT_CBM706T_RU.md`.
 - Бюджеты времени реакции и распределение safety-функций (SFAT): `docs/safety/SFAT_and_Timing_Budget_MFDC_ru.md`.
-- Протокол CAN с ТК (таймауты, seq, слова fault/limit/status): `docs/PROTOCOL_TK.md`.
+- Протокол CAN с ТК (таймауты, seq, слова fault/limit/status): `docs/protocols/PROTOCOL_TK.md`.
+- Протокол плата ↔ ПК (настройка/логирование/отладка, PCcom4): `docs/protocols/PCCOM4.02.md`.
 - Стратегия доказательств/регрессии (unit/SIL/on-target/HIL/bench): `docs/TEST_PLAN.md` + `docs/verification/MFDC_Master_Document_RU.md`.
 - Design review / “где сломается в реальности”: `docs/reviews/MFDC_Red_Team_Design_Review.md` и `docs/verification/MFDC_Red_Team_Review_RU.md`.
 
@@ -119,7 +125,8 @@ mindmap
 - Если меняются железо/тайминги/политика аварий/интерфейсы — обновляй `docs/PROJECT_CONTEXT.md` в том же изменении.
 - Термины — только через `docs/GLOSSARY.md`.
 - Детали safety/таймингов — через `docs/SAFETY.md` + `docs/safety/*`.
-- Детали обмена — через `docs/PROTOCOL_TK.md`.
+- Детали обмена — через `docs/protocols/PROTOCOL_TK.md`.
+- Детали обмена “плата ↔ ПК” — через `docs/protocols/PCCOM4.02.md`.
 - Стратегия доказательства/регрессии — через `docs/TEST_PLAN.md`.
 
 ### 2.2 Процесс изменения (Gate → Spec → DN → Tests/Proof → Code → Review)
@@ -161,7 +168,8 @@ mindmap
 - PWM/TIM1/BKIN/DRV_EN/пины/тайминги/домены: `docs/PROJECT_CONTEXT.md` (+ при необходимости `docs/SAFETY.md`).
 - Измерения/усреднение/энергия: `docs/measurements/MEASUREMENT_ARCHITECTURE_RU.md` (+ `docs/PROJECT_CONTEXT.md`).
 - Контур тока/контракт “1 шаг на период PWM”: `docs/design-notes/DN-001_MFDC_Current_Control.md` (+ `docs/ARCHITECTURE.md` при изменении границ).
-- Протокол/таймауты/коды ошибок: `docs/PROTOCOL_TK.md` (+ `docs/GLOSSARY.md` для новых терминов/состояний).
+- Протокол/таймауты/коды ошибок: `docs/protocols/PROTOCOL_TK.md` (+ `docs/GLOSSARY.md` для новых терминов/состояний).
+- Протокол связи с ПК (PCcom4): `docs/protocols/PCCOM4.02.md`.
 - Safety/latch/recovery/watchdog: `docs/SAFETY.md` (+ `docs/safety/*` при необходимости).
 - Минимальная регрессия/доказательства: `docs/TEST_PLAN.md`.
 
@@ -176,7 +184,7 @@ mindmap
 
 ### 3.1 Минимальный “контекст-стек” для задачи
 - `docs/CONTEXT_SNAPSHOT.md`
-- при необходимости: `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/PROTOCOL_TK.md`
+- при необходимости: `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK.md`, `docs/protocols/PCCOM4.02.md`
 - 1–3 релевантных файла кода (если задача про реализацию)
 
 ### 3.2 Обязательная мини-шапка (5 строк)

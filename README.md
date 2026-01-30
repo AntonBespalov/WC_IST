@@ -14,8 +14,9 @@
 4) Термины: `docs/GLOSSARY.md`.
 5) Архитектура (fast/slow домены, тестируемость): `docs/ARCHITECTURE.md`.
 6) Safety (классы аварий, latch/recovery, shutdown-path): `docs/SAFETY.md`.
-7) Протокол обмена с ТК: `docs/PROTOCOL_TK.md`.
-8) Верификация/минимальная регрессия: `docs/TEST_PLAN.md`.
+7) Протокол обмена с ТК (CAN): `docs/protocols/PROTOCOL_TK.md`.
+8) Протокол “плата ↔ ПК” по USB-UART (PCcom4): `docs/protocols/PCCOM4.02.md`.
+9) Верификация/минимальная регрессия: `docs/TEST_PLAN.md`.
 
 Для запросов к Codex/LLM по умолчанию используйте короткий контекст: `docs/CONTEXT_SNAPSHOT.md`.
 
