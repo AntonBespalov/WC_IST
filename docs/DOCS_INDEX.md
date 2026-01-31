@@ -3,7 +3,7 @@
 Все документы проекта хранятся и актуализируются **только** в `docs/`.
 Задача этого файла — быстро находить нужный документ и не таскать всё в контекст.
 
-Статус индекса: обновлено на **2026-01-30**.
+Статус индекса: обновлено на **2026-01-31**.
 
 ---
 
@@ -21,6 +21,7 @@
 - `docs/measurements/MEASUREMENT_ARCHITECTURE_RU.md` — архитектура измерения/усреднения/энергии (ключевой инвариант: усреднение по периоду ШИМ).
 - `docs/design-notes/DN-TEMPLATE.md` — шаблон Design Note (DN) для фиксации “spec из чата” в репозитории.
 - `docs/design-notes/DN-001_MFDC_Current_Control.md` — DN-001 (нормативные SHALL/SHALL NOT требования к контуру тока и контракту с ТК).
+- `docs/design-notes/DN-002_MFDC_ManualDuty_Service_Mode.md` — DN-002 (сервисный режим ручной скважности ШИМ для отладки, с сохранением safety-инвариантов).
 - `docs/theory/MFDC_Current_Loop_and_Fault_Model_STM32G474.md` — детализация PI+ограничения+fault-model.
 - `docs/theory/MFDC_Software_Architecture_STM32G474.md` — архитектура ПО (fast/slow слои).
 - `docs/theory/MFDC_Welding_Power_Source_Software_Architecture.md` — единый инженерный обзор (роль трансформатора, R_dyn(t)).
