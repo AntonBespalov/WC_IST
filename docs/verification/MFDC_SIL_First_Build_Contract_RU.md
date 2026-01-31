@@ -64,6 +64,7 @@ I4) **SIL не заменяет HIL/on-target** (см. `docs/verification/MFDC_R
 Требования к окружению CI (Linux агент):
 - `cmake` (рекомендуется версия, поддерживающая `ctest --output-junit`, чтобы стабильно получать JUnit XML);
 - один из компиляторов: `gcc` или `clang`;
+- стандарт языка C: **GNU11**, т.е. `-std=gnu11` (см. `docs/CODING_STANDARD_RU.md` / раздел 3);
 - `ninja` опционально (ускоряет сборку, но не обязателен).
 
 ### 4.1 Минимальные цели сборки (CMake targets)
@@ -151,4 +152,3 @@ Host CMake должен собирать (как минимум):
 - `L2` прогон доступен для nightly/release;
 - артефакты (JUnit + sil_summary + traces/manifest) сохраняются и просматриваются;
 - Core реально собирается на host без HAL/RTOS (инвариант I1), и это защищено сборкой.
-
