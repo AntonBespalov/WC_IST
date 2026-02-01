@@ -1,3 +1,6 @@
+// NOTE: основной entrypoint — корневой Jenkinsfile (см. ci/jenkins/pipeline.groovy).
+// Этот файл оставлен как шаблон/резервный вариант (см. docs/verification/MFDC_SIL_First_Build_Contract_RU.md).
+
 // Jenkinsfile (template): host unit (L1) + SIL (L2) via CMake + CTest.
 // Предполагается Linux агент. Target-сборка (STM32CubeIDE) живёт в другом контуре.
 
