@@ -1,0 +1,41 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "host",
+      "displayName": "Host (L1/L2)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/host",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "WC_IST_BUILD_TESTS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host",
+      "configurePreset": "host"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "host-l1",
+      "configurePreset": "host",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "L1" } }
+    },
+    {
+      "name": "host-l2-smoke",
+      "configurePreset": "host",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "L2_smoke" } }
+    },
+    {
+      "name": "host-l2",
+      "configurePreset": "host",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "L2" } }
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+// Возвращаем замыкание, чтобы корневой Jenkinsfile мог сделать load(...) и вызвать его.
+// Пайплайн: host unit (L1) + SIL (L2) через CMake + CTest.
+// Предполагается Linux-агент. Target-сборка (STM32CubeIDE) живёт в другом контуре.
+
+return {
+  pipeline {
+    agent none
+
+    options {
+      timestamps()
+      disableConcurrentBuilds()
+    }
+
+    parameters {
+      string(name: "AGENT_LABEL", defaultValue: "linbuild", description: "Label Linux-агента Jenkins")
+      choice(name: "SIL_PROFILE", choices: ["pr", "full"], description: "pr = L1 + L2_smoke, full = L1 + L2")
+      string(name: "HOST_BUILD_DIR", defaultValue: "build/host", description: "Каталог host-сборки")
+      string(name: "CMAKE_SOURCE_DIR", defaultValue: ".", description: "Каталог с host CMakeLists.txt")
+    }
+
+    environment {
+      // Стабильный вывод для логов/парсинга.
+      LC_ALL = "C"
+      LANG = "C"
+    }
+
+    stages {
+      stage("Checkout") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          checkout scm
+        }
+      }
+
+      stage("Tooling") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          sh """
+            set -euxo pipefail
+            cmake --version
+            ctest --version
+            ${CC:-cc} --version || true
+            ${CXX:-c++} --version || true
+          """
+        }
+      }
+
+      stage("Configure") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          sh """
+            set -euxo pipefail
+            cmake -S "${CMAKE_SOURCE_DIR}" -B "${HOST_BUILD_DIR}" -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          """
+        }
+      }
+
+      stage("Build") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          sh """
+            set -euxo pipefail
+            cmake --build "${HOST_BUILD_DIR}" -j
+          """
+        }
+      }
+
+      stage("Test L1") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          sh """
+            set -euxo pipefail
+            ctest --test-dir "${HOST_BUILD_DIR}" --output-on-failure --output-junit "${HOST_BUILD_DIR}/junit_l1.xml" -L L1
+          """
+        }
+      }
+
+      stage("Test L2") {
+        agent { label "${params.AGENT_LABEL}" }
+        steps {
+          sh """
+            set -euxo pipefail
+            if [ "${SIL_PROFILE}" = "full" ]; then
+              LABEL="L2"
+              OUT="junit_l2.xml"
+            else
+              LABEL="L2_smoke"
+              OUT="junit_l2_smoke.xml"
+            fi
+            ctest --test-dir "${HOST_BUILD_DIR}" --output-on-failure --output-junit "${HOST_BUILD_DIR}/${OUT}" -L "${LABEL}"
+          """
+        }
+      }
+    }
+
+    post {
+      always {
+        junit allowEmptyResults: true, testResults: "${params.HOST_BUILD_DIR}/junit_*.xml"
+        archiveArtifacts allowEmptyArchive: true, artifacts: "tests/traces/**, ${params.HOST_BUILD_DIR}/sil_summary.*"
+      }
+    }
+  }
+}
