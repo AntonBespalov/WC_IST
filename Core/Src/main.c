@@ -21,6 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "task.h"
 
 /* USER CODE END Includes */
 
@@ -49,6 +51,7 @@
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
+static void AppMainTask(void *argument);
 
 /* USER CODE END PFP */
 
@@ -87,6 +90,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  (void)xTaskCreate(AppMainTask, "app", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+
+  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -167,6 +173,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static void AppMainTask(void *argument)
+{
+  (void)argument;
+
+  for (;;)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
 
 /* USER CODE END 4 */
 
