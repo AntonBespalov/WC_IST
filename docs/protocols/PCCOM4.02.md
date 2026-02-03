@@ -334,9 +334,9 @@ byte3: REV_L    (LSB)
 
 ---
 
-## 11. Профиль проекта MFDC (плата ↔ ПК): сервис `ManualDuty`
+## 11. Профиль проекта MFDC (плата ↔ ПК): сервисы `ManualDuty` и `SelfTest`
 
-Этот раздел — **проектное расширение** поверх PCcom 4.02, описывающее сервисные команды для отладки (см. `docs/design-notes/DN-002_MFDC_ManualDuty_Service_Mode.md` и `docs/PROJECT_CONTEXT.md` / раздел 2 и 6).
+Этот раздел — **проектное расширение** поверх PCcom 4.02, описывающее сервисные команды для отладки и производственной диагностики (см. `docs/design-notes/DN-002_MFDC_ManualDuty_Service_Mode.md`, `docs/PROJECT_CONTEXT.md` и `docs/TEST_PLAN.md`).
 
 ### 11.1. Общие правила
 
@@ -401,3 +401,47 @@ byte3: REV_L    (LSB)
   - `byte10`: `state` (u8): 0=IDLE, 1=ARMED, 2=WELD, 3=FAULT (коды фиксируются проектом; TBD)
   - `byte11`: `fault_class` (u8): 0=OK, 1=LIMIT, 2=SOFT-FAULT, 3=HARD-FAULT (TBD)
   - `byte12..15`: `reserved` (=0)
+
+#### 11.2.4. `SelfTest.Run` (`Op = 0x10`, запись) / `RUN_SELFTEST`
+
+Назначение: запуск встроенной самодиагностики для производства/сервиса. Команда **не должна** влиять на fast loop и не должна запускаться при активном ШИМ.
+
+Условия допуска (gating):
+- `state = IDLE`, PWM подтверждён как OFF.
+
+Запрос:
+- `Type = 0x03`
+- `Data` = 2 байта:
+  - `byte0`: `test_mask_lo` (битовая маска тестов)
+  - `byte1`: `test_mask_hi`
+
+Маска тестов (Draft 0.1):
+- bit0: `ADC_NOISE_FLOOR` (I/U при PWM OFF)
+- bit1: `VREFINT`
+- bit2: `TEMPERATURE_PLAUSIBILITY` (обрыв/КЗ/диапазон)
+- bit3: `SAFETY_PATH_BKIN_FLAG` (опционально, только если безопасно реализуемо)
+
+Ответ:
+- если успешно: `Type = 0x05`, `Data` = 2 байта `result_code` (u16), где `0x0000` = STARTED
+- если ошибка: `Type = 0x08`, `Data` = 2 байта `error_code` (u16) (TBD)
+
+#### 11.2.5. `SelfTest.Status` (`Op = 0x11`, чтение)
+
+Назначение: получить статус/результаты self-test, запущенного `SelfTest.Run`.
+
+Запрос:
+- `Type = 0x01`
+- `Data` отсутствует
+
+Ответ:
+- `Type = 0x04`, `Data` = 16 байт:
+  - `byte0`: `selftest_state` (u8): 0=IDLE, 1=RUNNING, 2=DONE
+  - `byte1`: `selftest_result` (u8): 0=OK, 1=FAIL, 2=INCONCLUSIVE
+  - `byte2..3`: `fail_mask` (u16, MSB first) — биты тестов, которые не прошли
+  - `byte4..5`: `warn_mask` (u16, MSB first) — биты тестов с предупреждением (опционально)
+  - `byte6..7`: `adc_noise_i_rms_lsb` (u16) — RMS шума канала тока в LSB (Draft 0.1)
+  - `byte8..9`: `adc_noise_u_rms_lsb` (u16) — RMS шума канала напряжения в LSB (Draft 0.1)
+  - `byte10..11`: `vrefint_mV` (u16) — оценка VDD по VREFINT (мВ) (Draft 0.1)
+  - `byte12`: `temp1_status` (u8): 0=OK, 1=OPEN, 2=SHORT, 3=OUT_OF_RANGE (Draft 0.1)
+  - `byte13`: `temp2_status` (u8): аналогично (Draft 0.1)
+  - `byte14..15`: `reserved` (=0)

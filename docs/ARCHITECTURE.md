@@ -91,6 +91,7 @@
 - `diag_counters` — единый набор счётчиков и метрик
 - `timebase` — монотонный таймштамп (микросекунды/тики)
 - `asserts` — политика assert/ошибок (в т.ч. production-safe)
+- `settings_store` — хранение настроек/калибровок (version + CRC + defaults) с инвариантом: запись во Flash **только** в `IDLE` (PWM OFF), без влияния на PWM-домен (см. `docs/PROJECT_CONTEXT.md` / раздел 5)
 
 ---
 
