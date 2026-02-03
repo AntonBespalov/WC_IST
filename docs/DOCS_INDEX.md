@@ -38,7 +38,7 @@
 
 ## Skills/LLM workflow (мета)
 - `docs/meta/LLM_SKILLS_GUIDE_RU.md` — принципы Ground Truth, как использовать docs/skills с Codex.
-- `docs/HOW_TO_USE_RU.md` — mind map + памятка (onboarding): как пользоваться docs/ + skills/ в проекте.
+- `docs/HOW_TO_USE_RU.md` — mind map + памятка (onboarding): как пользоваться docs/ + `.codex/skills/` в проекте.
 
 ---
 

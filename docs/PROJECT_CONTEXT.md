@@ -145,5 +145,5 @@
 - Протокол ТК (CAN): `docs/protocols/PROTOCOL_TK.md`
 - Протокол плата ↔ ПК (USB-UART, PCcom4): `docs/protocols/PCCOM4.02.md`
 - План тестов: `docs/TEST_PLAN.md`
-- Skills: `skills/README.md`
+- Skills: `.codex/skills/README.md`
 - Design Notes: `docs/design-notes/DN-002_MFDC_ManualDuty_Service_Mode.md`

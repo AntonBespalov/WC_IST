@@ -59,7 +59,7 @@ Skill **не должен**:
 - `AGENTS.md` — правила по умолчанию
 - `docs/PROJECT_CONTEXT.md`
 - `docs/CONTEXT_SNAPSHOT.md`
-- `skills/`
+- `.codex/skills/`
 
 Опционально:
 - `docs/ARCHITECTURE.md`

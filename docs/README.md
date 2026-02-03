@@ -6,7 +6,7 @@
 ---
 
 ## Ядро (читают все)
-- `HOW_TO_USE_RU.md` — onboarding: mind map + памятка по docs/ + skills/.
+- `HOW_TO_USE_RU.md` — onboarding: mind map + памятка по docs/ + `.codex/skills/`.
 - `PROJECT_CONTEXT.md` — Ground Truth (железо/тайминги/safe state).
 - `GLOSSARY.md` — термины.
 - `ARCHITECTURE.md` — границы модулей, fast/slow домены, тестируемость.
