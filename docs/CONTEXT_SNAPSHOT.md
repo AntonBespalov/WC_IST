@@ -5,11 +5,16 @@
 
 ## Hardware/RTOS
 - MCU: STM32G474 (STM32G4)
+- Тактирование: HSE 16 МГц (ABM8AIG-16.000MHZ-4-T)
 - Архитектура ПО: fast loop без RTOS (ISR/таймер) + slow loop FreeRTOS
 - PWM (MFDC-инвертор): TIM1, 1–4 кГц, Break BKIN/BKIN2
 - Gate drivers: 2× SKYPER 42 R → 4× SEMiX252GB12
-- Измерения: Rogowski (через интегратор) + AD7380 (I_weld/U_weld, SPI+DMA)
+- Измерения fast loop: AD7380 (I_weld/U_weld, SPI+DMA), ток — через интегратор (источник сигнала выбирается аппаратно: датчик тока трансформатора или катушка Роговского)
+- Измерения “медленных” каналов: 2× AD7606 (SPI3/SPI4): входные токи/напряжения + температуры (модуль/выпрямитель/корпус)
 - Внешний супервизор: CBM706T (FAULT/RESET роли разделены)
+- ШИМ-выходы TIM1 буферизуются через CD4049UBDR
+- USB-UART к ПК: FT232H (PCcom4)
+- CAN к ТК: CAN FD (FDCAN1 + TD301MCANFD)
 
 ## Тайминги
 - Команды ТК приходят с периодом 1 мс; источник отвечает статусом/измерениями.
@@ -25,7 +30,7 @@
 - Устойчиво невалидные измерения (timeout/stuck/sat/CRC) => запрет сварки (не “варим вслепую”).
 
 ## Наблюдаемость
-- Минимум debug-пинов: DBG_CTRL_TICK, DBG_ADC_START, DBG_ADC_READY, DBG_PWM_APPLY, DBG_FAULT_ENTRY
+- Debug GPIO: DBG0/DBG1 (настраиваемые события, фиксировать настройку в каждом тесте)
 - Измерять: BKIN_RAW и PWM_OUT (TIM1_CHx/CHxN)
 - Осциллографирование/логирование: USB-UART → ПК (не блокировать fast loop; буферизация в SRAM).
 - Протокол “плата ↔ ПК” по USB-UART: PCcom4 (см. `docs/protocols/PCCOM4.02.md`).
