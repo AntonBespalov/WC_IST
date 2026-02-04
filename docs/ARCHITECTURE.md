@@ -75,7 +75,7 @@
 - не содержит бизнес-логики фильтров
 
 3) `comms_hal`
-- CAN (или CAN-FD — TBD) драйвер + очереди
+- CAN FD драйвер + очереди (см. `docs/protocols/PROTOCOL_TK.md`)
 - “сырой” транспорт для `protocol_core`
 
 4) `watchdog_hal`

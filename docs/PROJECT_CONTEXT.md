@@ -75,14 +75,14 @@
 ---
 
 ## 5) Интерфейсы и обмен
-- Основной интерфейс с ТК: **CAN** (CAN-FD TBD)
+- Основной интерфейс с ТК: **CAN FD** (см. `docs/protocols/PROTOCOL_TK.md`)
 - Формат обмена:
   - Команда: `I_ref_cmd`, `enable`, `seq` (и опциональные лимиты)
   - Ответ: `seq_applied`, `I_ref_used`, `I_per`, `U_per`, `state`, `fault_word`, `limit_word`, счётчики ошибок
 - Политика таймаутов:
-  - Soft-timeout: **5 мс** (Draft 0.1) → controlled stop / спад `I_ref_used` по политике
-  - Hard-timeout: **20 мс** (Draft 0.1) → **запрет сварки + FAULT** (latch по политике)
-  - Bus-off/ошибки линии: **без ABOM** (Draft 0.1), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/PROTOCOL_TK.md` и `docs/SAFETY.md`)
+  - Soft-timeout: **5 мс** (Draft 0.2) → controlled stop / спад `I_ref_used` по политике
+  - Hard-timeout: **20 мс** (Draft 0.2) → **запрет сварки + FAULT** (latch по политике)
+  - Bus-off/ошибки линии: **без ABOM** (Draft 0.2), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/PROTOCOL_TK.md` и `docs/SAFETY.md`)
 - Интерфейс “плата ↔ ПК” по USB-UART: **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой CAN-кадров, см. `docs/protocols/PCCOM4.02.md`)
 - Неволатильные настройки/калибровки:
   - Хранение: **внутренняя Flash** МК (проектный NVM storage).
