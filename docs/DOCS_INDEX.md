@@ -33,6 +33,7 @@
 - `docs/verification/MFDC_Verification_Plan_RU.md` — formal verification plan (критерии PASS/FAIL и уровни).
 - `docs/verification/MFDC_Red_Team_Review_RU.md` — red-team (слепые зоны SIL/HIL, аппаратные/интеграционные риски).
 - `docs/verification/MFDC_SIL_First_Build_Contract_RU.md` — контракт SIL-first: host L1/L2 через CMake+CTest + интеграция с Jenkins.
+- `docs/MISSING_SPECS_IMPLEMENTATION_RU.md` — перечень недостающих спецификаций (P0/P1/P2), которые нужно зафиксировать до/в процессе реализации прошивки и тестов.
 
 ---
 
@@ -45,3 +46,5 @@
 ## Протоколы и интерфейсы
 - `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК по CAN (кадры/таймауты/seq/CRC/сценарии).
 - `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART плата ↔ ПК): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
+- `docs/protocols/tk_protocol.dbc` — DBC-описание CAN/CAN FD протокола для декодирования/сниффинга (сейчас скелет, до фиксации байтовой раскладки полей).
+- `docs/protocols/CAN_LOGGING_HOWTO_RU.md` — как снимать/хранить логи CAN/CAN FD (candump/pcapng/ASC) для анализа и V&V.

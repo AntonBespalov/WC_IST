@@ -20,68 +20,67 @@
 
 ## 0) Mind map (карта системы)
 
-```mermaid
-mindmap
-  root((MFDC: ПО источника сварочного тока))
-    Ground Truth (docs/)
-      PROJECT_CONTEXT.md
-        железо/тайминги/пины
-        safe state (политика)
-      GLOSSARY.md
-      ARCHITECTURE.md
-      SAFETY.md
-      protocols/PROTOCOL_TK.md
-      protocols/PCCOM4.02.md
-      TEST_PLAN.md
-      DOCS_INDEX.md
-        deep docs
-    ПО (высокоуровнево)
-      Fast loop (без RTOS)
-        измерения (SPI+DMA, усреднение по PWM)
-        регулятор тока (1 шаг / период PWM)
-        fast protections
-        PWM+BKIN shutdown-path
-      Slow loop (FreeRTOS)
-        обмен с ТК (1 мс домен)
-        диагностика/счётчики
-        логирование (не блокировать fast loop)
-        recovery/команды обслуживания
-    Safety
-      Safe State
-        TIM1 BKIN/BKIN2 => PWM OFF
-        DRV_EN/INH => запрет драйверов
-      Классы аварий
-        C0: аппаратный трип + latch
-        C1: быстрый stop (timeout/measurements/overrun)
-        C2: warning/ограничения
-      Latch & Recovery
-      Watchdog
-        внутренний
-        внешний CBM706T (FAULT vs RESET)
-    Измерения
-      AD7380 (I_weld/U_weld)
-      Инвариант: mean() по периоду PWM
-      P_per = mean(I*U)
-      Диагностика: stuck/sat/timeout
-    Протокол с ТК (CAN)
-      Команда 1 мс => Статус 1 мс
-      Seq/CRC/Timeouts
-      State machine: IDLE/ARMED/WELD/FAULT
-    Протокол плата ↔ ПК (USB-UART)
-      PCcom4 (protocols/PCCOM4.02.md)
-      Настройка / осциллографирование / отладка (туннель CAN)
-    Тестирование и доказательства
-      L0..L5 (unit/SIL/on-target/HIL/bench)
-      Минимальная регрессия R1..R10
-      Инструментирование (DBG_* + BKIN_RAW + PWM_OUT)
-    Codex/LLM (skills)
-      Контекст: CONTEXT_SNAPSHOT.md
-      Ворота: ask-questions-embedded-stm32-freertos
-      Workflow: Spec => DN => Tests/Proof => Code
-      Review: red-team-review-welding / strict-audit
+```text
+MFDC: ПО источника сварочного тока
+├─ Ground Truth (docs/)
+│  ├─ PROJECT_CONTEXT.md
+│  │  ├─ железо/тайминги/пины
+│  │  └─ safe state (политика)
+│  ├─ GLOSSARY.md
+│  ├─ ARCHITECTURE.md
+│  ├─ SAFETY.md
+│  ├─ protocols/PROTOCOL_TK.md
+│  ├─ protocols/PCCOM4.02.md
+│  ├─ TEST_PLAN.md
+│  └─ DOCS_INDEX.md
+│     └─ deep docs
+├─ ПО (высокоуровнево)
+│  ├─ Fast loop (без RTOS)
+│  │  ├─ измерения (SPI+DMA, усреднение по PWM)
+│  │  ├─ регулятор тока (1 шаг / период PWM)
+│  │  ├─ fast protections
+│  │  └─ PWM+BKIN shutdown-path
+│  └─ Slow loop (FreeRTOS)
+│     ├─ обмен с ТК (1 мс домен)
+│     ├─ диагностика/счётчики
+│     ├─ логирование (не блокировать fast loop)
+│     └─ recovery/команды обслуживания
+├─ Safety
+│  ├─ Safe State
+│  │  ├─ TIM1 BKIN/BKIN2 => PWM OFF
+│  │  └─ DRV_EN/INH => запрет драйверов
+│  ├─ Классы аварий
+│  │  ├─ C0: аппаратный трип + latch
+│  │  ├─ C1: быстрый stop (timeout/measurements/overrun)
+│  │  └─ C2: warning/ограничения
+│  ├─ Latch & Recovery
+│  └─ Watchdog
+│     ├─ внутренний
+│     └─ внешний CBM706T (FAULT vs RESET)
+├─ Измерения
+│  ├─ AD7380 (I_weld/U_weld)
+│  ├─ Инвариант: mean() по периоду PWM
+│  ├─ P_per = mean(I*U)
+│  └─ Диагностика: stuck/sat/timeout
+├─ Протокол с ТК (CAN)
+│  ├─ Команда 1 мс => Статус 1 мс
+│  ├─ Seq/CRC/Timeouts
+│  └─ State machine: IDLE/ARMED/WELD/FAULT
+├─ Протокол плата ↔ ПК (USB-UART)
+│  ├─ PCcom4 (protocols/PCCOM4.02.md)
+│  └─ Настройка / осциллографирование / отладка (туннель CAN)
+├─ Тестирование и доказательства
+│  ├─ L0..L5 (unit/SIL/on-target/HIL/bench)
+│  ├─ Минимальная регрессия R1..R10
+│  └─ Инструментирование (DBG_* + BKIN_RAW + PWM_OUT)
+└─ Codex/LLM (skills)
+   ├─ Контекст: CONTEXT_SNAPSHOT.md
+   ├─ Ворота: ask-questions-embedded-stm32-freertos
+   ├─ Workflow: Spec => DN => Tests/Proof => Code
+   └─ Review: red-team-review-welding / strict-audit
 ```
 
-Если рендер не отображается: VS Code поддерживает Mermaid в Markdown (или используйте расширение Mermaid).
+Примечание: это текстовая “карта” (без Mermaid), чтобы одинаково читалась в любом просмотрщике Markdown.
 
 ---
 
