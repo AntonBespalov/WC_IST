@@ -49,6 +49,41 @@
 
 ---
 
+## Шаблон 1a — ADR (архитектурное решение) в репозиторий
+**Skills:** `system-design-interrogation` (если требования ещё не ясны), `adr-writer`
+
+> Используй skill: `adr-writer`.  
+> Контекст (кратко): [вставь `docs/CONTEXT_SNAPSHOT.md`].  
+> Тема ADR: <1 строка>.  
+> Ограничения/инварианты: <что нельзя сломать>.  
+> Варианты: <A/B (и опционально C)> (если вариантов нет — предложи минимум 2).  
+> Done/Proof: <какие evidence/тесты/измерения нужны, чтобы принять решение>.  
+> Выход:  
+> - предложи имя файла `docs/decisions/ADR-YYYYMMDD-<slug>.md`,  
+> - полный текст ADR строго по `docs/decisions/ADR-TEMPLATE.md`.  
+> Код НЕ пиши.
+
+> Mini-шапка MUST заполнена выше; если нет — сначала `ask-questions-embedded-stm32-freertos`.
+
+---
+
+## Шаблон 1b — DN (Design Note) в репозиторий по итогам обсуждения
+**Skills:** `dn-writer` (+ `test-verification-welding-short` если нужно усилить proof obligations)
+
+> Используй skill: `dn-writer`.  
+> Контекст (кратко): [вставь `docs/CONTEXT_SNAPSHOT.md`].  
+> Задача: <что хотим изменить>.  
+> Ограничения: <что нельзя менять / какие файлы трогать можно>.  
+> Done/Proof: <как проверяем и что доказываем>.  
+> Выход:  
+> - предложи имя файла `docs/design-notes/DN-XXX_<short_name>.md`,  
+> - полный текст DN строго по `docs/design-notes/DN-TEMPLATE.md`.  
+> Код НЕ пиши.
+
+> Mini-шапка MUST заполнена выше; если нет — сначала `ask-questions-embedded-stm32-freertos`.
+
+---
+
 ## Шаблон 2 — Реализация минимальным патчем
 **Skills:** `patch-discipline-small-diffs`, `test-verification-welding-short` (+ `safety-invariants-welding` при необходимости)
 

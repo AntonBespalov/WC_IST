@@ -43,6 +43,12 @@
 
 ---
 
+## Архитектурные решения (ADR)
+- `docs/decisions/README.md` — что такое ADR и как пользоваться.
+- `docs/decisions/ADR-TEMPLATE.md` — шаблон ADR (варианты, критерии, риски, доказательства, rollback).
+
+---
+
 ## Протоколы и интерфейсы
 - `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК по CAN (кадры/таймауты/seq/CRC/сценарии).
 - `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART плата ↔ ПК): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
