@@ -3,6 +3,11 @@
 Эта папка содержит “skills” — короткие инструкции (про правила), которые задают стиль мышления и обязательные акценты при разработке и ревью.
 Skills версионируются вместе с проектом.
 
+Формат хранения: каждый skill — это папка `.codex/skills/<skill-name>/` с файлом `.codex/skills/<skill-name>/SKILL.md`.
+
+Примечание по терминам: “Spec” в этом репозитории — это шаг процесса (формулирование требований и критериев приёмки), а не обязательно отдельный файл.
+Фиксация результата Spec обычно делается как DN в `docs/design-notes/` (см. `docs/HOW_TO_USE_RU.md` / раздел “Процесс изменения” и `docs/PROMPT_TEMPLATES.md`).
+
 ## Источники правды
 Перед использованием skills ориентируйся на:
 - `docs/PROJECT_CONTEXT.md` — железо, тайминги, интерфейсы, политика safe state (Ground Truth)
@@ -29,37 +34,47 @@ Skills версионируются вместе с проектом.
 ## Актуальные skills
 
 ### 0) `ask-questions-embedded-stm32-freertos`
-**Файл:** `skills/ask-questions-embedded-stm32-freertos.md`  
+**Файл:** `.codex/skills/ask-questions-embedded-stm32-freertos/SKILL.md`  
 **Когда применять:** если задача недоописана (Gate M1..M5) или затрагивает safety/тайминги/ISR/DMA/обмен.  
 **Что делает:** задаёт минимальные must-have вопросы и не позволяет начинать реализацию без ответов или явных допущений.
 
 ### 1) `workflow-spec-tests-code`
-**Файл:** `skills/workflow-spec-tests-code.md`  
+**Файл:** `.codex/skills/workflow-spec-tests-code/SKILL.md`  
 **Когда применять:** новая фича/изменение поведения (особенно control/measurement/safety/comms).  
 **Что делает:** принуждает к процессу **Spec → Tests/Proof → Code** (код — только по явному запросу).
 
-### 2) `test-verification-welding-short`
-**Файл:** `skills/test-verification-welding-short.md`  
+### 2) `adr-writer`
+**Файл:** `.codex/skills/adr-writer/SKILL.md`  
+**Когда применять:** когда нужно принять архитектурное решение или выбрать вариант реализации (2+ правдоподобных подхода, важны критерии выбора).  
+**Что делает:** оформляет ADR строго по `docs/decisions/ADR-TEMPLATE.md` (контекст, варианты, критерии, риски, tests/proof, rollback).
+
+### 3) `dn-writer`
+**Файл:** `.codex/skills/dn-writer/SKILL.md`  
+**Когда применять:** после обсуждения требований/архитектуры, чтобы зафиксировать решение в `docs/design-notes/` перед реализацией/ревью.  
+**Что делает:** оформляет DN строго по `docs/design-notes/DN-TEMPLATE.md` (Goal/Non-goals, Decision/Rationale, impact, risks, Test plan/Proof/Rollback).
+
+### 4) `test-verification-welding-short`
+**Файл:** `.codex/skills/test-verification-welding-short/SKILL.md`  
 **Когда применять:** любые изменения в управлении током, измерениях, авариях, таймингах, обмене.  
 **Что делает:** требует измеримых критериев, плана доказательств, fault-injection и инструментирования таймингов (GPIO/trace).
 
-### 3) `safety-invariants-welding`
-**Файл:** `skills/safety-invariants-welding.md`  
+### 5) `safety-invariants-welding`
+**Файл:** `.codex/skills/safety-invariants-welding/SKILL.md`  
 **Когда применять:** всё, что затрагивает safe state / BKIN / DRV_EN / recovery / watchdog / разрешение сварки.  
 **Что делает:** фиксирует “неприкасаемые” инварианты (hardware shutdown-path, no auto-restart, no blind welding) и требует доказательств.
 
-### 4) `patch-discipline-small-diffs`
-**Файл:** `skills/patch-discipline-small-diffs.md`  
+### 6) `patch-discipline-small-diffs`
+**Файл:** `.codex/skills/patch-discipline-small-diffs/SKILL.md`  
 **Когда применять:** любая кодогенерация/правки кода.  
 **Что делает:** удерживает изменения маленькими, запрещает “скрытые рефакторинги”, задаёт план коммитов.
 
-### 5) `red-team-review-welding`
-**Файл:** `skills/red-team-review-welding.md`  
+### 7) `red-team-review-welding`
+**Файл:** `.codex/skills/red-team-review-welding/SKILL.md`  
 **Когда применять:** после патча/PR — особенно для критичных модулей.  
 **Что делает:** “враждебное” ревью: гонки, тайминги, отказные сценарии, нарушения safety-инвариантов. Не переписывает код, а ищет проблемы и требует проверки.
 
-### 6) `strict-audit`
-**Файл:** `skills/strict-audit.md`  
+### 8) `strict-audit`
+**Файл:** `.codex/skills/strict-audit/SKILL.md`  
 **Когда применять:** когда нужен “No-Go” аудит (safety gate) перед стендом/силовой частью или при спорных решениях.  
 **Что делает:** выдаёт [AUDIT PASS]/[AUDIT FAIL], блокирующие замечания и что измерить/доказать.
 
@@ -80,23 +95,25 @@ Skills версионируются вместе с проектом.
 ## Дополнительные (опциональные) skills
 Использовать по ситуации, обычно не больше 1 вместе с “ядром”.
 
-- `skills/_optional/test-verification-welding-long.md` — расширенная версия верификации (HIL/SIL/DFT/record-replay), когда нужен “полный” evidence plan.
-- `skills/_optional/debug-scientific-embedded.md` — научный режим отладки (наблюдение → гипотеза → инструментирование → вывод).
-- `skills/_optional/complexity-analysis.md` — аудит RT/сложности (ISR/stack/blocking).
-- `skills/_optional/docs-maintainer.md` — подсказка, какие `docs/*` обновить после изменения кода/архитектуры.
-- `skills/_optional/system-design-interrogation.md` — интерактивное прояснение требований (вопросы по одному, drafting Spec секциями).
+- `.codex/skills/test-verification-welding-long/SKILL.md` — расширенная версия верификации (HIL/SIL/DFT/record-replay), когда нужен “полный” evidence plan.
+- `.codex/skills/debug-scientific-embedded/SKILL.md` — научный режим отладки (наблюдение → гипотеза → инструментирование → вывод).
+- `.codex/skills/complexity-analysis/SKILL.md` — аудит RT/сложности (ISR/stack/blocking).
+- `.codex/skills/docs-maintainer/SKILL.md` — подсказка, какие `docs/*` обновить после изменения кода/архитектуры.
+- `.codex/skills/system-design-interrogation/SKILL.md` — интерактивное прояснение требований (вопросы по одному, drafting Spec секциями; код — только после “Spec утвержден”).
 
 ---
 
 ## Шаблон для добавления нового skill
-1) Название файла: `skills/<kebab-case>.md`
-2) YAML-шапка: `name`, `version`, `description`, `tags`, (опц.) `project_context`, `glossary`, `when_to_use`, `outputs`
-3) Skill должен быть коротким (≤ 1–2 страниц) и содержать:
+1) Имя skill: `<kebab-case>`
+2) Папка: `.codex/skills/<kebab-case>/`
+3) Файл: `.codex/skills/<kebab-case>/SKILL.md`
+4) YAML-шапка: `name`, `version`, `description`, `tags`, (опц.) `project_context`, `glossary`, `when_to_use`, `outputs`
+5) Skill должен быть коротким (≤ 1–2 страниц) и содержать:
    - миссию
    - MUST/SHOULD
    - контракт вывода (что модель обязана выдать)
    - “нельзя”
-4) При изменениях:
+6) При изменениях:
    - повышай `version`
    - в PR укажи причину (ссылка на проблему/инцидент/решение)
 
