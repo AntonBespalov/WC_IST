@@ -42,6 +42,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+QSPI_HandleTypeDef hqspi1;
+
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
@@ -67,6 +69,7 @@ static void MX_SPI3_Init(void);
 static void MX_SPI4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_QUADSPI1_Init(void);
 /* USER CODE BEGIN PFP */
 static void AppMainTask(void *argument);
 
@@ -113,6 +116,7 @@ int main(void)
   MX_SPI4_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
+  MX_QUADSPI1_Init();
   /* USER CODE BEGIN 2 */
   (void)xTaskCreate(AppMainTask, "app", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 
@@ -175,6 +179,41 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief QUADSPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_QUADSPI1_Init(void)
+{
+
+  /* USER CODE BEGIN QUADSPI1_Init 0 */
+
+  /* USER CODE END QUADSPI1_Init 0 */
+
+  /* USER CODE BEGIN QUADSPI1_Init 1 */
+
+  /* USER CODE END QUADSPI1_Init 1 */
+  /* QUADSPI1 parameter configuration*/
+  hqspi1.Instance = QUADSPI;
+  hqspi1.Init.ClockPrescaler = 255;
+  hqspi1.Init.FifoThreshold = 1;
+  hqspi1.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
+  hqspi1.Init.FlashSize = 1;
+  hqspi1.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+  hqspi1.Init.ClockMode = QSPI_CLOCK_MODE_0;
+  hqspi1.Init.FlashID = QSPI_FLASH_ID_1;
+  hqspi1.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
+  if (HAL_QSPI_Init(&hqspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN QUADSPI1_Init 2 */
+
+  /* USER CODE END QUADSPI1_Init 2 */
+
 }
 
 /**
