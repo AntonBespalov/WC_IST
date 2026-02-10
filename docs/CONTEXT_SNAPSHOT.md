@@ -34,4 +34,5 @@
 - Измерять: BKIN_RAW и PWM_OUT (TIM1_CHx/CHxN)
 - Осциллографирование/логирование: USB-UART → ПК (не блокировать fast loop; буферизация в SRAM).
 - Протокол “плата ↔ ПК” по USB-UART: PCcom4 (база: `docs/protocols/PCCOM4.02.md`, профиль проекта: `docs/protocols/PCCOM4.02_PROJECT.md`).
-- Резерв для record/replay/накопления: FRAM CY15B104Q-PZXI (QSPI), если пропускной способности USB-UART не хватает (политика включения — TBD).
+- Резерв для буферизации осциллографа/накопления: PSRAM APS6404L-3SQR-SN (QSPI/QUADSPI), если пропускной способности USB-UART не хватает (политика включения — TBD).
+

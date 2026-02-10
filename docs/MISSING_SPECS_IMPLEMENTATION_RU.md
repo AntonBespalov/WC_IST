@@ -79,7 +79,7 @@
 ### 2.3 CAN/USB-UART/QSPI/SPI3/SPI4 (P0/P1)
 
 Нужно:
-- таблица пинов и AF для: FDCAN1, FT232H UART/USB, QSPI FRAM, SPI3/SPI4 (AD7606), SPI (AD7380),
+- таблица пинов и AF для: FDCAN1, FT232H UART/USB, QSPI внешняя память (PSRAM), SPI3/SPI4 (AD7606), SPI (AD7380),
 - назначение CS/DRDY/BUSY/RESET у АЦП (если есть), линии синхронизации/триггеров,
 - DMA каналы/приоритеты и IRQ приоритеты (чтобы доказать отсутствие влияния на fast loop).
 
