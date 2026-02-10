@@ -2,6 +2,7 @@
 
 Назначение: короткая вставка в запросы к Codex, чтобы не тащить весь контекст.
 Источник правды: `docs/PROJECT_CONTEXT.md` и `docs/GLOSSARY.md` (каталог доп. документов: `docs/DOCS_INDEX.md`).
+Стандарт кода (для любых патчей/кода): см. `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF).
 
 ## Hardware/RTOS
 - MCU: STM32G474 (STM32G4)

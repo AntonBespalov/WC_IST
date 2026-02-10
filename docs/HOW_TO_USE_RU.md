@@ -183,6 +183,7 @@ MFDC: ПО источника сварочного тока
 
 ### 3.1 Минимальный “контекст-стек” для задачи
 - `docs/CONTEXT_SNAPSHOT.md`
+- `docs/CODING_STANDARD_RU.md` (если будет патч/код: комментарии на русском, UTF-8/CRLF)
 - при необходимости: `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK.md`, `docs/protocols/PCCOM4.02.md`
 - 1–3 релевантных файла кода (если задача про реализацию)
 
