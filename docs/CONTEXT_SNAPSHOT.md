@@ -3,6 +3,7 @@
 Назначение: короткая вставка в запросы к Codex, чтобы не тащить весь контекст.
 Источник правды: `docs/PROJECT_CONTEXT.md` и `docs/GLOSSARY.md` (каталог доп. документов: `docs/DOCS_INDEX.md`).
 Стандарт кода (для любых патчей/кода): см. `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF).
+STM32CubeIDE: при добавлении новых папок с кодом обновлять include paths и `sourceEntries` в `.cproject` (см. `docs/HOW_TO_USE_RU.md` / раздел 5).
 
 ## Hardware/RTOS
 - MCU: STM32G474 (STM32G4)
