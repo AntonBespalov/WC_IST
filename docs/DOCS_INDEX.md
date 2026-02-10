@@ -51,6 +51,7 @@
 
 ## Протоколы и интерфейсы
 - `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК по CAN (кадры/таймауты/seq/CRC/сценарии).
+- `docs/protocols/PROTOCOL_TK_ETHERCAT.md` — протокол обмена с ТК по EtherCAT PDO (RxPDO/TxPDO, валидаторы/таймауты, сценарии).
 - `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART плата ↔ ПК): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
 - `docs/protocols/PCCOM4.02_PROJECT.md` — профиль проекта поверх PCcom4: узлы/операции/форматы данных, сервисные режимы.
 - `docs/protocols/tk_protocol.dbc` — DBC-описание CAN/CAN FD протокола для декодирования/сниффинга (сейчас скелет, до фиксации байтовой раскладки полей).

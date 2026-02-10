@@ -89,7 +89,6 @@
 
 ## 5) Интерфейсы и обмен
 - Основной интерфейс с ТК: **CAN FD** (см. `docs/protocols/PROTOCOL_TK.md`)
-- CAN: **FDCAN1** + трансивер **TD301MCANFD**
 - Формат обмена:
   - Команда: `I_ref_cmd`, `enable`, `seq` (и опциональные лимиты)
   - Ответ: `seq_applied`, `I_ref_used`, `I_per`, `U_per`, `state`, `fault_word`, `limit_word`, счётчики ошибок

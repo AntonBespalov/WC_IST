@@ -1,6 +1,6 @@
 # ADR-TEMPLATE — Architecture Decision Record (шаблон)
 
-Статус: draft  
+Статус: accepted  
 Дата: 2026-02-10  
 Владелец: Bespalov  
 Связано: `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md`, TBD (issue/PR/commit)  
@@ -94,7 +94,7 @@
   - Dev/PC обмен “PDO-like”: транспорт меняется с UDP/Ethernet на USB-UART (PCcom4 stream).
 - Контракты данных (высокоуровнево):
   - EtherCAT PDO: определить RxPDO (команды/уставки/enable/mode/seq) и TxPDO (статус/измерения/ошибки/seq_echo/качество связи).
-  - USB-UART emu: переиспользовать `TkPdo.Emu.RxFrame` (32 байта) и `TkPdo.Emu.TxFrame` (20 байт), определённые в `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md` (раздел “Interfaces / Data / Timing impact”), но транспортировать их как PCcom4 frames по UART (стрим, без batching).
+  - USB-UART emu: “PDO-like” обмен по PCcom4 (stream), узел `Node=0x03`, payload соответствует `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (RxPDO `CMD_WELD` / TxPDO `FB_STATUS` / (опц.) `FAULT`).
 - Влияние на тайминги/джиттер/бюджеты + что измерять:
   - Период/джиттер EtherCAT-обновлений и “возраст команды” на момент применения в slow loop (метрика `cmd_age_max_us`).
   - Задержка “новый PDO доступен → команда принята → команда применена” (в пределах slow loop).
@@ -130,5 +130,5 @@
   - Определить механизм “атомарного” чтения process image через FMC (seq-before/seq-after, снапшот в буфер).
   - Обновить/добавить проектный профиль для PCcom4 по UART для `TkPdo.Emu.*` (ссылки и точные форматы брать из ADR 2026-02-09; транспорт поменять на UART, убрать UDP batching).
   - План измерений таймингов (на железе) и набор fault-injection сценариев для приёмки решения.
-  - Пометить `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md` как частично устаревший: “идея/форматы `TkPdo.Emu.*` актуальны, транспорт UDP/Ethernet — obsolete (заменён на USB-UART)”.
+  - Актуализировать `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md`: оставить “идею/форматы `TkPdo.Emu.*`”, убрать привязку к UDP/Ethernet, зафиксировать транспорт как USB-UART (PCcom4 stream).
 - Links: PR/commit/issue

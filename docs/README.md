@@ -11,7 +11,8 @@
 - `GLOSSARY.md` — термины.
 - `ARCHITECTURE.md` — границы модулей, fast/slow домены, тестируемость.
 - `SAFETY.md` — safety-политика и proof obligations.
-- `protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN).
+- `protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN, legacy/fallback).
+- `protocols/PROTOCOL_TK_ETHERCAT.md` — протокол обмена с ТК (EtherCAT PDO).
 - `protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART) для настройки/логирования/отладки (в т.ч. обёртка CAN-кадров).
 - `protocols/PCCOM4.02_PROJECT.md` — профиль проекта поверх PCcom4: узлы/операции/форматы, сервисные режимы.
 - `TEST_PLAN.md` — минимальная регрессия и доказательства.
@@ -40,6 +41,7 @@
 
 ## Протоколы и интерфейсы
 - `protocols/PROTOCOL_TK.md`  
+- `protocols/PROTOCOL_TK_ETHERCAT.md`  
   Единственный источник правды по обмену с ТК: кадры, таймауты, seq/CRC, коды ошибок, тестовые сценарии.
 
 - `protocols/PCCOM4.02.md`  

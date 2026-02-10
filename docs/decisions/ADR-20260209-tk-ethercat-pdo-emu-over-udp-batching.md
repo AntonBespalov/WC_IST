@@ -1,60 +1,48 @@
-# ADR-20260209 — Имитация EtherCAT PDO: PCcom4 поверх UDP с batching
+# ADR-20260209 — Имитация EtherCAT PDO: PCcom4 по USB-UART (stream)
 
 Статус: draft  
 Дата: 2026-02-09  
 Владелец: Bespalov  
-Связано: TBD (issue/PR)  
+Связано: `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`, TBD (issue/PR)  
 
 ---
 
 ## 1) Context / Problem
-- Нужно сделать сервисный интерфейс по **отдельному Ethernet** (не EtherCAT) для:
-  - высокоскоростной телеметрии “цифрового осциллографа”,
+- Нужно сделать сервисный интерфейс по **USB-UART (PCcom4)** для:
   - имитации циклического управления “как EtherCAT PDO” (best effort + watchdog) с ПК под Windows.
 - Контекст проекта: см. `docs/CONTEXT_SNAPSHOT.md` (двухдоменная архитектура; обмен с ТК 1 мс как целевой на штатном интерфейсе; наблюдаемость DBG0/DBG1).
 - Ограничения/инварианты (нельзя сломать):
   - аппаратный safe state и shutdown-path (TIM1 BKIN/BKIN2) остаются неизменными (см. `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`).
-  - потеря/невалидность “команд управления” по сервисному Ethernet ⇒ безопасный останов/запрет сварки по watchdog; без авто-рестарта.
-  - сервисная сеть и телеметрия не должны блокировать fast loop/критичные ISR; при перегрузке допустим дроп/флаг overflow, но не деградация управления “вслепую”.
+  - потеря/невалидность “команд управления” по сервисному каналу ⇒ безопасный останов/запрет сварки по watchdog; без авто-рестарта.
+  - сервисный обмен не должен блокировать fast loop/критичные ISR; при перегрузке допустим дроп/флаг overflow, но не деградация управления “вслепую”.
   - протокольная модель PCcom4 (Node/Op/CRC16) сохраняется; расширения фиксируются в проектном профиле `docs/protocols/PCCOM4.02_PROJECT.md`.
 - Триггеры пересмотра:
   - если потребуется жёсткая периодика ~1 мс на Windows (best effort перестаёт устраивать),
   - если потребуется строгая синхронизация по типу EtherCAT DC/SYNC,
-  - если объёмы телеметрии потребуют иной схемы packetization/буферизации.
+  - если объёмы телеметрии потребуют иной схемы буферизации/транспорта (например, не через USB-UART).
 
 ## 2) Decision (что выбрали)
-- Выбранный вариант: **Вариант A** — “EtherCAT PDO-like over Ethernet” как **PCcom4 поверх UDP**, при этом:
+- Выбранный вариант: **Вариант A** — “EtherCAT PDO-like” как **PCcom4 по USB-UART (stream)**, при этом:
   - имитация обмена с ТК/“PDO” делается через узел проекта `Node = 0x03`, но **все упоминания CAN в профиле/кодовых именах должны быть заменены на EtherCAT PDO** (например: “Имитация обмена с ТК по EtherCAT PDO”).
-  - UDP-датаграмма может содержать **несколько** PCcom4-кадров (batched frames), фрагментация кадра между датаграммами запрещена.
-- Scope: определяем правила UDP-транспорта (batched frames), фиксируем форматы `TkPdo.Emu.RxFrame` (32 байта) и `TkPdo.Emu.TxFrame` (20 байт), определяем watchdog и счётчики качества связи. UART как сервисный транспорт не используется (Ethernet вместо него).
+- Scope: фиксируем транспорт (PCcom4 stream по USB-UART) и привязку payload к “канонике” EtherCAT: `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (RxPDO `CMD_WELD` 16 байт, TxPDO `FB_STATUS` 48 байт, (опц.) `FAULT` 16 байт). Расширения/счётчики фиксируются в `docs/protocols/PCCOM4.02_PROJECT.md` / 3.2.
 
 ## 3) Options considered (варианты)
 ### Вариант A
 - Идея:
-  - PCcom4 как контейнер, UDP как транспорт.
+  - PCcom4 как контейнер, USB-UART как транспорт (stream).
   - `Node = 0x03` используется как “псевдо-PDO” (имитация EtherCAT PDO):
-    - Host→Device: `TkPdo.Emu.RxFrame` (Type=0x02, DataLen=32),
-    - Device→Host: `TkPdo.Emu.TxFrame` (Type=0x02, DataLen=20).
-  - UDP datagram может содержать 1..K кадров PCcom4 подряд.
+    - Host→Device: `TkPdo.Emu.CmdWeld` (Type=0x02, DataLen=16),
+    - Device→Host: `TkPdo.Emu.FbStatus` (Type=0x02, DataLen=48),
+    - (опционально) Device→Host: `TkPdo.Emu.Fault` (Type=0x02, DataLen=16).
 - Плюсы:
   - Максимальная совместимость со стеком `protocol_core`/профилем PCcom4 проекта: не плодим новый “мини-протокол”.
-  - Можно уменьшать задержки/нагрузку по PPS за счёт batching (несколько кадров в одной датаграмме).
   - Форматы легко маппятся в реальный EtherCAT PDO в будущем (те же поля/структуры).
 - Минусы/риски:
-  - Нужно чётко определить правила разборки “несколько кадров в UDP”, иначе будет несовместимость реализаций.
-  - UDP = возможны потери/перестановка; требуется seq/watchdog/метрики.
+  - UART stream = возможны потери/шум/ресинхронизация; требуется валидатор, watchdog и метрики качества.
 
 ### Вариант B
 - Идея:
-  - PCcom4 поверх UDP, но **строго 1 кадр на 1 датаграмму** (как максимально простой профиль).
-- Плюсы:
-  - Самый простой парсер; минимум неоднозначностей.
-- Минусы/риски:
-  - Для high-rate scope или частых управляющих сообщений растёт PPS ⇒ выше нагрузка на ПК/МК, больше джиттер.
-
-### (опционально) Вариант C
-- Идея:
-  - Отдельный “лёгкий UDP протокол” для псевдо-PDO/телеметрии (без PCcom4-кадров).
+  - Отдельный “лёгкий бинарный протокол” поверх UART для псевдо-PDO/телеметрии (без PCcom4-кадров).
 - Плюсы:
   - Минимальный overhead, максимально прямые структуры.
 - Минусы/риски:
@@ -62,7 +50,6 @@
 
 ## 4) Decision criteria (критерии выбора)
 - Совместимость с существующей моделью PCcom4 проекта (Node/Op/CRC16, профили, tooling).
-- Минимизация задержек и особенно PPS-нагрузки (batched frames).
 - Явная управляемость потерь/джиттера (seq + метрики + watchdog).
 - Safety: потеря команд ⇒ предсказуемый safe stop.
 - Простота верификации (измеримость на железе и воспроизводимость на ПК).
@@ -70,96 +57,70 @@
 ## 5) Rationale (почему так)
 - Выбран Вариант A, потому что он:
   - использует уже существующий узел `Node = 0x03` как контейнер для псевдо-PDO (имитации EtherCAT PDO) и требует лишь привести наименования/кодовые имена в соответствие EtherCAT PDO, убрав упоминания CAN;
-  - даёт batching нескольких PCcom4 кадров в одном UDP пакете, что снижает PPS и обычно улучшает джиттер на Windows;
-  - остаётся в рамках правил `docs/protocols/PCCOM4.02.md` (поведение “несколько кадров/фрагментация” определяется проектом).
-- Вариант B отвергнут, потому что при росте частоты/телеметрии быстро упирается в PPS и нагрузку.
-- Вариант C отвергнут, потому что создаёт второй параллельный протокол и ухудшает сопровождаемость/совместимость.
+  - остаётся в рамках правил `docs/protocols/PCCOM4.02.md` (stream parser, CRC16, валидаторы длины) и не вводит второй параллельный протокол.
+- Вариант B отвергнут, потому что создаёт второй параллельный протокол и ухудшает сопровождаемость/совместимость.
 
 ## 6) Consequences / Risks
 - Позитивные последствия:
-  - Один “семейный” протокол PCcom4 для сервиса (управление/статус/метрики/осциллограф), но по Ethernet.
-  - Снижение PPS за счёт batching, более гладкая работа под Windows.
+  - Один “семейный” протокол PCcom4 для сервиса (управление/статус/метрики/осциллограф) по USB-UART.
 - Негативные последствия/долг:
-  - Нужно реализовать и поддерживать правила “batched PCcom4 frames in UDP” (парсер/валидатор).
-  - Нужна строгая политика перегрузки (drop + counters), чтобы сеть не влияла на управление.
+  - Нужен устойчивый stream parser (ресинхронизация, таймауты, защита от мусора в потоке).
+  - Нужна строгая политика перегрузки (drop + counters), чтобы сервисный обмен не влиял на управление.
 - Риски отказа/edge cases и как их обнаруживаем:
-  - Потери/перестановка UDP: счётчики `rx_missed`, `rx_out_of_order`, `seq_gap_max`, `watchdog_trip_count`.
+  - Потеря/задержка кадров: счётчики `rx_missed`, `rx_out_of_order`, `watchdog_trip`.
   - Перегрузка scope: `scope_dropped_samples`, `scope_tx_overflow`, флаг overflow в статусе.
   - “Подвисание” ПК/пауза приложения: watchdog с переходом в safe stop; лог/счётчик срабатываний.
 
 ## 7) Interfaces / Data / Timing impact
-- UDP-транспорт PCcom4 (проектное определение):
-  - UDP payload = конкатенация 1..K PCcom4 кадров.
-  - Каждый кадр должен быть полностью в пределах одной датаграммы (фрагментация кадра между датаграммами **запрещена**).
-  - Разбор в датаграмме: идти слева направо, ожидая `PREAMBLE=0xFF`, затем `Length`, затем ровно `Length` байт `FRAME`, затем следующий кадр до конца датаграммы. Если остаётся “хвост” < минимального кадра — датаграмма считается некорректной и учитывается в счётчиках.
-- Порты UDP (предложение; фиксируются проектом):
-  - `40100/udp` — управление/статус/метрики (в т.ч. `Node=0x03`),
-  - `40101/udp` — осциллограф (узел `Node=0x06`).
+- Транспорт: USB-UART (FT232H), поток байт по правилам PCcom4 (см. `docs/protocols/PCCOM4.02.md` / раздел 8 “Требования к реализации парсера (stream)”).
+  - `PREAMBLE=0xFF` не уникален ⇒ требуется ресинхронизация по `Length`+CRC.
+  - Любые “хвосты”/битые CRC учитываются в счётчиках качества связи.
 - Адреса PCcom4: как в `docs/protocols/PCCOM4.02_PROJECT.md` (ПК=`0x01`, УСПФ=`0x03`).
 - Имитация “PDO” через узел `Node = 0x03` (переименованный на “Имитация обмена с ТК по EtherCAT PDO”):
-  - `TkPdo.Emu.RxFrame` (`Op=0x01`, `Type=0x02`, `DataLen=32`) — Host→Device, без ответа:
-    - `byte0`: `proto_ver` (u8) = 1
-    - `byte1`: `flags` (u8): bit0=`enable`, bit1=`estop_req`, bit2=`reserved`
-    - `byte2..3`: `seq` (u16, little-endian)
-    - `byte4..7`: `host_tx_ts_us_lo32` (u32, little-endian) — для оценки RTT/джиттера
-    - `byte8..11`: `setpoint_i` (i32, little-endian) — уставка (единицы TBD, фиксируются проектом)
-    - `byte12`: `mode` (u8) — режим (enum TBD)
-    - `byte13`: `reserved`
-    - `byte14..15`: `reserved_u16` (=0)
-    - `byte16..19`: `cmd_word0` (u32) — битовое поле/командные флаги (TBD)
-    - `byte20..23`: `cmd_word1` (u32) — битовое поле/командные флаги (TBD)
-    - `byte24..27`: `setpoint_u` (i32, little-endian) — опционально, 0 если не используется
-    - `byte28..31`: `reserved_u32` (=0)
-  - `TkPdo.Emu.TxFrame` (`Op=0x02`, `Type=0x02`, `DataLen=20`) — Device→Host, без ответа:
-    - `byte0`: `proto_ver` (u8) = 1
-    - `byte1`: `status_flags` (u8): bit0=`weld_allowed`, bit1=`in_fault`, bit2=`pdo_timeout_active`, …
-    - `byte2..3`: `seq_echo` (u16, little-endian) — последний принятый `seq`
-    - `byte4..7`: `fault_bitmap` (u32, little-endian)
-    - `byte8..11`: `meas_i_mean` (i32, little-endian) — среднее по периоду PWM
-    - `byte12..15`: `meas_u_mean` (i32, little-endian)
-    - `byte16..19`: `reserved_u32` (=0) (можно заменить на `mcu_ts_us_lo32` при необходимости)
+  - `TkPdo.Emu.CmdWeld` (`Op=0x01`, `Type=0x02`, `DataLen=16`) — Host→Device:
+    - payload `CMD_WELD` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 3.4.
+  - `TkPdo.Emu.FbStatus` (`Op=0x02`, `Type=0x02`, `DataLen=48`) — Device→Host:
+    - payload `FB_STATUS` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.1.2.
+  - (опционально) `TkPdo.Emu.Fault` (`Op=0x03`, `Type=0x02`, `DataLen=16`) — Device→Host:
+    - payload `FAULT` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.3.
 - Watchdog / таймаут:
-  - Когда `flags.enable=1`, отсутствие валидного `TkPdo.Emu.RxFrame` дольше `EmuTk.LinkTimeoutMs` ⇒ safe stop/запрет сварки + статусный флаг `pdo_timeout_active`.
-  - Значение `EmuTk.LinkTimeoutMs` задаётся проектно (начать с 15–25 мс для периода 5 мс на Windows, затем уточнить измерениями).
+  - Когда `CMD_WELD.enable=1`, отсутствие валидного `CMD_WELD` дольше `soft/hard-timeout` из `docs/protocols/PROTOCOL_TK_ETHERCAT.md` ⇒ controlled stop / запрет сварки + отражение в `FB_STATUS` (`COMMS_*_TIMEOUT_ACTIVE`, `fault_word.COMMS_TIMEOUT_HARD` по политике).
+  - Для dev-режима допускается параметр `TkPdo.Emu.LinkTimeoutMs` (см. `docs/protocols/PCCOM4.02_PROJECT.md` / 3.3, `TkPdo.Emu.LinkTimeoutMs`) как настройка hard-timeout (Draft).
 - Метрики качества связи (проектное расширение узла `Node=0x03`):
   - `TkPdo.Emu.Stats` (`Op=0x10`, чтение): счётчики `rx_ok`, `rx_crc_err`, `rx_out_of_order`, `rx_missed`, `watchdog_trip`, `pdo_age_max_us`, `last_seq`, `last_rtt_us` (формат Data фиксируется проектом).
 - Осциллограф:
-  - Использовать уже описанный узел `Node = 0x06` (`Scope.*`) и транспортировать по UDP тем же batching-правилом.
-  - Для минимизации PPS: паковать несколько “сэмплов” в один `Scope.Data` кадр.
+  - Использовать уже описанный узел `Node = 0x06` (`Scope.*`) поверх того же PCcom4 по USB-UART.
+  - При перегрузке USB-UART: допускается дроп/децимация + счётчики, но не блокировка fast loop.
 
 ## 8) Tests / Proof / Evidence / Rollback
 ### Tests / Proof / Evidence
 - Unit/host:
-  - Парсер batched PCcom4 frames в UDP: корректная обработка 1..K кадров, детект “хвостов”, CRC16 Modbus RTU (как в `docs/protocols/PCCOM4.02.md`).
+  - Stream parser PCcom4 по UART: частичные кадры, ресинхронизация по `0xFF`, валидация `Length`, CRC16 Modbus RTU (как в `docs/protocols/PCCOM4.02.md`).
   - Валидатор фиксированных `DataLen` для `TkPdo.Emu.*`.
 - SIL:
-  - Модель “приход RxFrame с seq → обновление команды → генерация TxFrame со seq_echo”, плюс watchdog при пропуске кадров.
+  - Модель “приход `CMD_WELD` с `seq` → обновление команды → генерация `FB_STATUS` с `seq_applied`”, плюс watchdog при пропуске/невалидности.
 - On-target измерения (GPIO/осциллограф/trace):
-  - GPIO: `NET_RX_IRQ`, `EMU_CMD_VALID`, `EMU_CMD_APPLIED`, `WATCHDOG_TRIP`, `SCOPE_TX_BUSY`.
+  - GPIO: `UART_RX_ACTIVITY`, `EMU_CMD_VALID`, `EMU_CMD_APPLIED`, `WATCHDOG_TRIP`, `SCOPE_TX_BUSY`.
   - Измерить:
     - распределение периода прихода `EMU_CMD_VALID` (джиттер Windows),
     - задержку `EMU_CMD_VALID → EMU_CMD_APPLIED` (в пределах slow loop),
     - максимальный “возраст команды” `pdo_age_max_us`.
 - HIL/bench:
   - Fault-injection (минимум 5):
-    1) отключение Ethernet,
+    1) отключение/обрыв USB-UART,
     2) пауза PC приложения на 50–200 мс,
     3) out-of-order seq,
-    4) потеря пакетов (дроп на ПК),
-    5) битые CRC кадра.
+    4) переполнение RX (бурст кадров),
+    5) битые CRC кадра / мусор в потоке.
   - Ожидаемое: safe stop по таймауту, корректные счётчики/флаги, отсутствие влияния на fast loop и аппаратный shutdown-path.
 
 ### Rollback
-- Отключить “EmuTk over UDP” как функцию (feature flag) и вернуться к штатному интерфейсу управления (EtherCAT PDO по целевому плану) без изменения safety-политики и fast loop.
-- Для сервиса/диагностики оставить только “scope over UDP” при необходимости.
+- Отключить `TkPdo.Emu.*` по USB-UART как функцию (feature flag) и вернуться к штатному интерфейсу управления (EtherCAT PDO по целевому плану) без изменения safety-политики и fast loop.
 
 ## 9) Status / Follow-ups
 - Status: draft | accepted | implemented | obsolete
 - Follow-ups: TODO список задач (если есть)
-  - Обновить `docs/protocols/PCCOM4.02_PROJECT.md`:
-    - переименовать раздел 3.2 и кодовые имена, убрав “CAN”: `TkCan.Emu.*` → `TkPdo.Emu.*` (или эквивалентное именование под EtherCAT PDO),
-    - уточнить форматы `RxFrame` (32) и `TxFrame` (20) (снять “TBD”),
-    - добавить `TkPdo.Emu.Stats` и параметр `EmuTk.LinkTimeoutMs` (или эквивалент).
-  - Уточнить единицы `setpoint_i`, enum `mode`, состав `status_flags` (и что считается “валидной командой”).
+  - Синхронизировать `docs/protocols/PCCOM4.02_PROJECT.md` / 3.2 с `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (payload `CMD_WELD` / `FB_STATUS` / `FAULT`).
+  - Уточнить/зафиксировать проектные константы валидатора (например `I_ref_max_mA`, default `max_slew_rate_default_A_ms`) и правила “валидная команда” (если потребуется — править `docs/protocols/PROTOCOL_TK_ETHERCAT.md`).
   - Зафиксировать целевой период для Windows (например 5 мс) и первичное значение watchdog (например 20 мс) на основе измерений.
 - Links: PR/commit/issue

@@ -107,12 +107,78 @@ DataLen — длина поля `Data` (в байтах).
 
 Поле `VER_SHORTHASH` в команду `Версия ПО` не включается.
 
-### 3.2. Узел `Имитация обмена с ТК по CAN` (`Node = 0x03`)
+### 3.2. Узел `Имитация обмена с ТК по EtherCAT PDO` (`Node = 0x03`)
 
 | Название операции | Операция | Длина поля данных | Доступ | Формат/примечание | Кодовое имя |
 |---|---:|---:|---|---|---|
-| Сообщение от ТК к УСПФ | `0x01` | 32 | сообщение | размер и формат данных будут уточнены | `TkCan.Emu.RxFrame` |
-| Сообщение от УСПФ к ТК | `0x02` | 20 | сообщение | размер и формат данных будут уточнены | `TkCan.Emu.TxFrame` |
+| `CMD_WELD` (RxPDO) | `0x01` | 16 | сообщение | payload как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 3.4 | `TkPdo.Emu.CmdWeld` |
+| `FB_STATUS` (TxPDO) | `0x02` | 48 | сообщение | payload как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.1.2 | `TkPdo.Emu.FbStatus` |
+| `FAULT` (TxPDO, опционально) | `0x03` | 16 | сообщение | payload как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.3 | `TkPdo.Emu.Fault` |
+| Статистика качества связи/парсинга | `0x10` | 32 | чтение | см. 3.2.4 | `TkPdo.Emu.Stats` |
+
+#### 3.2.1. `TkPdo.Emu.CmdWeld` (`Операция = 0x01`, сообщение, `DataLen = 16`)
+Назначение: dev-эмуляция RxPDO `CMD_WELD` (Host→Device) по USB-UART (PCcom4).
+
+Формат:
+- `Type = 0x02` (Сообщение)
+- `Data` = payload `CMD_WELD` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 3.4.
+
+#### 3.2.2. `TkPdo.Emu.FbStatus` (`Операция = 0x02`, сообщение, `DataLen = 48`)
+Назначение: dev-эмуляция TxPDO `FB_STATUS` (Device→Host) по USB-UART (PCcom4).
+
+Формат:
+- `Type = 0x02` (Сообщение)
+- `Data` = payload `FB_STATUS` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.1.2.
+
+#### 3.2.3. `TkPdo.Emu.Fault` (`Операция = 0x03`, сообщение, `DataLen = 16`)
+Назначение: dev-эмуляция опционального `TxPDO_FAULT` (Device→Host) по USB-UART (PCcom4).
+
+Формат:
+- `Type = 0x02` (Сообщение)
+- `Data` = payload `FAULT` как в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 4.3.
+
+#### 3.2.4. `TkPdo.Emu.Stats` (`Операция = 0x10`, чтение, `DataLen = 32`)
+Назначение: счётчики качества связи/парсинга и метрики “возраста команды”.
+
+Запрос:
+- `Type = 0x01` (Чтение данных)
+- `Data` отсутствует
+
+Ответ:
+- `Type = 0x04` (Ответ на чтение)
+- `Data` = 32 байта (все поля little-endian):
+
+| Bytes | Field | Type | Units | Назначение |
+|---|---|---|---|---|
+| 0..3 | `rx_ok` | u32 | - | Кол-во **валидных** принятых `TkPdo.Emu.CmdWeld` (применённых или принятых как валидные по валидатору). |
+| 4..7 | `rx_crc_err` | u32 | - | Кол-во PCcom4 кадров с **ошибкой CRC16** (Modbus RTU) при разборе stream. |
+| 8..11 | `rx_out_of_order` | u32 | - | Кол-во кадров `TkPdo.Emu.CmdWeld`, отвергнутых по политике `seq` как “повтор/назад” (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 1.2.3). |
+| 12..15 | `rx_missed` | u32 | - | Суммарное кол-во “пропущенных” `seq` (gap), вычисленное при приёме кадра с `delta>1` и `delta<=0x7FFF`: `rx_missed += (delta-1)`. |
+| 16..19 | `watchdog_trip` | u32 | - | Кол-во срабатываний watchdog “потеря команд” (вход в hard-timeout по `CMD_WELD.enable=1`). |
+| 20..23 | `pdo_age_max_us` | u32 | мкс | Максимальный наблюдённый “возраст команды” `cmd_age_us` (см. ниже) с момента сброса статистики. |
+| 24..25 | `last_seq` | u16 | - | `seq` последнего **принятого валидного** `CMD_WELD` (последний `seq`, который обновил “связь”). |
+| 26..27 | `reserved_u16` | u16 | - | MUST=0. |
+| 28..31 | `last_rtt_us` | u32 | мкс | RTT/latency метрика (опционально). В текущем профиле `CMD_WELD` не содержит метки времени Host, поэтому значение **должно быть 0** до введения расширения. |
+
+**Правила формирования/сброса статистики (Draft 0.1):**
+- Все счётчики монотонно растут и сбрасываются при старте (reset/power-on).
+- Отдельной команды “сбросить Stats” в этом профиле не определено.
+- Переполнение: u32 счётчики инкрементируются с естественным wrap-around (если нужна saturating-политика — зафиксировать проектно).
+
+**Определение `cmd_age_us` (для `pdo_age_max_us`):**
+- `cmd_age_us` — возраст (в микросекундах) с момента приёма последнего **валидного** `CMD_WELD` до “текущего момента” в slow loop.
+- Если монотонной timebase в мкс нет, допускается выставлять `pdo_age_max_us = 0` (но тогда это должно быть отмечено в тестовых отчётах как “метрика недоступна”).
+
+**Что считается “валидным CMD_WELD” для `rx_ok/last_seq/pdo_age_max_us`:**
+- Кадр `TkPdo.Emu.CmdWeld` принят и прошёл:
+  - PCcom4 CRC16 (иначе `rx_crc_err++`),
+  - проверку `DataLen=16`,
+  - валидаторы формата/диапазонов/`reserved MUST=0`,
+  - политику `seq` (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md` / 1.2.3).
+
+**Уточнение про `watchdog_trip`:**
+- Инкрементируется на **переходе** “hard-timeout неактивен → активен” при `CMD_WELD.enable=1`.
+- При удержании в hard-timeout счётчик не должен расти каждый тик.
 
 ### 3.3. Узел `Настройка параметров` (`Node = 0x04`)
 
@@ -123,6 +189,7 @@ DataLen — длина поля `Data` (в байтах).
 | Регулятор тока: коэффициент пропорциональный (Kp) | `0x01` | 4 | чтение/запись | да | `float` | `CurrentRegulator.Kp` |
 | Регулятор тока: коэффициент интегральный (Ki) | `0x02` | 4 | чтение/запись | да | `float` | `CurrentRegulator.Ki` |
 | Регулятор тока: коэффициент дифференциальный (Kd) | `0x03` | 4 | чтение/запись | да | `float` | `CurrentRegulator.Kd` |
+| Имитация EtherCAT PDO: таймаут связи | `0x20` | 2 | чтение/запись | нет | `u16` (мс), little-endian | `TkPdo.Emu.LinkTimeoutMs` |
 
 ### 3.4. Узел `Управление` (`Node = 0x05`)
 
