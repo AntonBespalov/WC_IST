@@ -11,10 +11,10 @@ tags: ["stm32g4","freertos","tim1","welding","testing","verification","hil","sil
 project_context: "docs/PROJECT_CONTEXT.md"
 glossary: "docs/GLOSSARY.md"
 related_skills:
-  - "skills/test-verification-welding-short.md"
-  - "skills/safety-invariants-welding.md"
-  - "skills/red-team-review-welding.md"
-  - "skills/patch-discipline-small-diffs.md"
+  - "test-verification-welding-short"
+  - "safety-invariants-welding"
+  - "red-team-review-welding"
+  - "patch-discipline-small-diffs"
 when_to_use:
   - "проектирование архитектуры с акцентом на тестируемость (host/SIL/HIL/on-target)"
   - "планирование/ревью HIL стенда, fault-injection набора, доказательств таймингов"
@@ -191,7 +191,7 @@ outputs:
 
 ---
 
-## Record/Replay (если есть буфер/PSRAM)
+## Record/Replay (если есть внешняя память/буфер)
 Рекомендация: кольцевой буфер с pre/post-trigger на fault.
 
 Минимальные поля записи:

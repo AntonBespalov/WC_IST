@@ -44,7 +44,7 @@ outputs:
 
 ## SHOULD — желательно (если уместно)
 - HIL до силовых прогонов: эмуляция сигналов измерений/АЦП, сценарии плохого контакта/скачков.
-- Record/Replay: кольцевой лог (PSRAM) с pre-trigger и post-trigger по fault.
+- Record/Replay: кольцевой лог (внешняя память; по Ground Truth — FRAM по QSPI, см. `docs/PROJECT_CONTEXT.md`) с pre-trigger и post-trigger по fault.
 - DFT для платы: тест-пойнты BKIN/DRV_EN/PWM/fault/опорники АЦП, возможность инъекции эталонных уровней.
 
 ## Контракт ответа (что выдавать в каждом релевантном ответе)

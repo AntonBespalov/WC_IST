@@ -1,4 +1,4 @@
-# ADR-TEMPLATE — Architecture Decision Record (шаблон)
+# ADR-20260209 — Fault-цепи и минимальный набор пинов/сигналов
 
 Статус: draft  
 Дата: 2026-02-09  
@@ -137,4 +137,3 @@
   - Добавить в `docs/TEST_PLAN.md` (если/когда появится) измерения shutdown latency и сценарии fault-injection.
   - Уточнить, какие сигналы драйвера доступны для наблюдения “SDI сработал” на отладочной и боевой платах.
 - Links: PR/commit/issue
-

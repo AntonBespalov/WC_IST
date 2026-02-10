@@ -1,4 +1,4 @@
-# DN-TEMPLATE — Design Note (шаблон)
+# DN-XXX_<short_name> — <title> (шаблон DN)
 
 Статус: draft  
 Дата: YYYY-MM-DD  

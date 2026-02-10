@@ -16,6 +16,7 @@ Skills версионируются вместе с проектом.
 - `docs/SAFETY.md` — классы аварий, latch/recovery, watchdog, shutdown-path
 - `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
 - `docs/protocols/PCCOM4.02.md` — протокол плата ↔ ПК (USB-UART, PCcom4)
+- `docs/protocols/PCCOM4.02_PROJECT.md` — профиль проекта поверх PCcom4 (узлы/операции/форматы)
 - `docs/TEST_PLAN.md` — уровни тестирования и регрессия
 
 Если skill противоречит контексту/словарю/архитектуре/safety — приоритет у документов из `docs/`, либо предложи правку.

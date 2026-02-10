@@ -1,4 +1,4 @@
-# ADR-TEMPLATE — Architecture Decision Record (шаблон)
+# ADR-20260209 — Имитация EtherCAT PDO: PCcom4 поверх UDP с batching
 
 Статус: draft  
 Дата: 2026-02-09  
@@ -163,4 +163,3 @@
   - Уточнить единицы `setpoint_i`, enum `mode`, состав `status_flags` (и что считается “валидной командой”).
   - Зафиксировать целевой период для Windows (например 5 мс) и первичное значение watchdog (например 20 мс) на основе измерений.
 - Links: PR/commit/issue
-

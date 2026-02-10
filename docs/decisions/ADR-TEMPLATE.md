@@ -1,4 +1,4 @@
-# ADR-TEMPLATE — Architecture Decision Record (шаблон)
+# ADR-YYYYMMDD-<slug> — <title> (шаблон ADR)
 
 Статус: draft  
 Дата: YYYY-MM-DD  
@@ -62,4 +62,3 @@
 - Status: draft | accepted | implemented | obsolete
 - Follow-ups: TODO список задач (если есть)
 - Links: PR/commit/issue
-

@@ -33,5 +33,5 @@
 - Debug GPIO: DBG0/DBG1 (настраиваемые события, фиксировать настройку в каждом тесте)
 - Измерять: BKIN_RAW и PWM_OUT (TIM1_CHx/CHxN)
 - Осциллографирование/логирование: USB-UART → ПК (не блокировать fast loop; буферизация в SRAM).
-- Протокол “плата ↔ ПК” по USB-UART: PCcom4 (см. `docs/protocols/PCCOM4.02.md`).
+- Протокол “плата ↔ ПК” по USB-UART: PCcom4 (база: `docs/protocols/PCCOM4.02.md`, профиль проекта: `docs/protocols/PCCOM4.02_PROJECT.md`).
 - Резерв для record/replay/накопления: FRAM CY15B104Q-PZXI (QSPI), если пропускной способности USB-UART не хватает (политика включения — TBD).
