@@ -225,9 +225,18 @@ MFDC: ПО источника сварочного тока
     из-за чего индексатор может не “видеть” исходники как часть проекта.
 
 Правило:
-- при создании новых папок с кодом (например, под `Fw/`): добавить их
-  1) в include paths проекта (Project Properties),
-  2) в `sourceEntries` в `.cproject` (как `kind="sourcePath"`).
+- при добавлении кода в каталог, который сейчас не входит в build path/индексацию (например, `Fw/*`), обязательно:
+  1) добавить нужный include path (`-I`) в Project Properties / `.cproject`,
+  2) добавить source root в `sourceEntries` (как `kind="sourcePath"`),
+  3) проверить, что изменения внесены во все активные конфигурации (обычно Debug и Release).
+
+Проверка после правок (обязательно):
+- В `Project Properties -> C/C++ General -> Paths and Symbols`:
+  - вкладка `Includes`: есть путь к новому каталогу заголовков (например, `Fw/control`);
+  - вкладка `Source Location`: есть source root (например, `Fw`).
+- В `.cproject`:
+  - есть `listOptionValue ... value=\"../Fw/control\"` (или нужный путь),
+  - есть `entry ... kind=\"sourcePath\" name=\"Fw\"` (или нужный source root).
 
 После правок:
 - `Project -> C/C++ Index -> Rebuild` (перестроить индекс).
