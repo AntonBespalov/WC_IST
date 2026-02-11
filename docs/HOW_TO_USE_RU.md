@@ -11,7 +11,7 @@
 3) `docs/GLOSSARY.md` — единые определения терминов.
 4) `docs/ARCHITECTURE.md` — границы модулей, fast/slow домены, тестируемость.
 5) `docs/SAFETY.md` — политика аварий, latch/recovery, watchdog, shutdown-path, proof obligations.
-6) `docs/protocols/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/сценарии.
+6) `docs/protocols/PROTOCOL_TK_ETHERCAT.md` — обмен с ТК (EtherCAT PDO): RxPDO/TxPDO, валидаторы/таймауты, сценарии. (Legacy CAN: `docs/protocols/PROTOCOL_TK.md`.)
 7) `docs/protocols/PCCOM4.02.md` — PCcom4 (плата ↔ ПК по USB-UART): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
 8) `docs/TEST_PLAN.md` — минимальная регрессия и требуемые доказательства.
 9) `docs/CONTEXT_SNAPSHOT.md` — короткая вставка контекста для запросов к Codex.
@@ -29,7 +29,8 @@ MFDC: ПО источника сварочного тока
 │  ├─ GLOSSARY.md
 │  ├─ ARCHITECTURE.md
 │  ├─ SAFETY.md
-│  ├─ protocols/PROTOCOL_TK.md
+│  ├─ protocols/PROTOCOL_TK_ETHERCAT.md
+│  ├─ protocols/PROTOCOL_TK.md (legacy/fallback)
 │  ├─ protocols/PCCOM4.02.md
 │  ├─ TEST_PLAN.md
 │  └─ DOCS_INDEX.md
@@ -62,7 +63,7 @@ MFDC: ПО источника сварочного тока
 │  ├─ Инвариант: mean() по периоду PWM
 │  ├─ P_per = mean(I*U)
 │  └─ Диагностика: stuck/sat/timeout
-├─ Протокол с ТК (CAN)
+├─ Протокол с ТК (EtherCAT PDO)
 │  ├─ Команда 1 мс => Статус 1 мс
 │  ├─ Seq/CRC/Timeouts
 │  └─ State machine: IDLE/ARMED/WELD/FAULT
@@ -91,7 +92,7 @@ MFDC: ПО источника сварочного тока
 3) `docs/GLOSSARY.md` — термины (чтобы одинаково понимать “safe state”, “latch”, “overrun”, “BKIN”).
 4) `docs/ARCHITECTURE.md` — модульные границы и тестируемость (host/SIL/HIL/on-target).
 5) `docs/SAFETY.md` и `docs/safety/*` — политика аварий, latch/recovery, shutdown-path, timing budget.
-6) `docs/protocols/PROTOCOL_TK.md` — обмен с ТК: кадры/таймауты/seq/CRC/тестовые сценарии.
+6) `docs/protocols/PROTOCOL_TK_ETHERCAT.md` — обмен с ТК (EtherCAT PDO): RxPDO/TxPDO, валидаторы/таймауты, тестовые сценарии. (Legacy CAN: `docs/protocols/PROTOCOL_TK.md`.)
 7) `docs/TEST_PLAN.md` — уровни тестов и “минимальная регрессия” (что обязаны доказать).
 
 ---
@@ -111,7 +112,7 @@ MFDC: ПО источника сварочного тока
 - Fault-model (HARD/SOFT/LIMIT, latch policy, реакции по слоям): `docs/theory/MFDC_Current_Loop_and_Fault_Model_STM32G474.md` + `docs/SAFETY.md`.
 - Safety shutdown-path (BKIN/DRV_EN, no auto-restart, watchdog, CBM706T роли): `docs/SAFETY.md` + `docs/safety/SAFETY_CONCEPT_CBM706T_RU.md`.
 - Бюджеты времени реакции и распределение safety-функций (SFAT): `docs/safety/SFAT_and_Timing_Budget_MFDC_ru.md`.
-- Протокол CAN с ТК (таймауты, seq, слова fault/limit/status): `docs/protocols/PROTOCOL_TK.md`.
+- Протокол EtherCAT PDO с ТК (таймауты, seq, слова fault/limit/status): `docs/protocols/PROTOCOL_TK_ETHERCAT.md`. (Legacy CAN: `docs/protocols/PROTOCOL_TK.md`.)
 - Протокол плата ↔ ПК (настройка/логирование/отладка, PCcom4): `docs/protocols/PCCOM4.02.md`.
 - Стратегия доказательств/регрессии (unit/SIL/on-target/HIL/bench): `docs/TEST_PLAN.md` + `docs/verification/MFDC_Master_Document_RU.md`.
 - Design review / “где сломается в реальности”: `docs/reviews/MFDC_Red_Team_Design_Review.md` и `docs/verification/MFDC_Red_Team_Review_RU.md`.
@@ -124,7 +125,7 @@ MFDC: ПО источника сварочного тока
 - Если меняются железо/тайминги/политика аварий/интерфейсы — обновляй `docs/PROJECT_CONTEXT.md` в том же изменении.
 - Термины — только через `docs/GLOSSARY.md`.
 - Детали safety/таймингов — через `docs/SAFETY.md` + `docs/safety/*`.
-- Детали обмена — через `docs/protocols/PROTOCOL_TK.md`.
+- Детали обмена с ТК — через `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (legacy CAN — `docs/protocols/PROTOCOL_TK.md`).
 - Детали обмена “плата ↔ ПК” — через `docs/protocols/PCCOM4.02.md`.
 - Стратегия доказательства/регрессии — через `docs/TEST_PLAN.md`.
 
@@ -167,7 +168,7 @@ MFDC: ПО источника сварочного тока
 - PWM/TIM1/BKIN/DRV_EN/пины/тайминги/домены: `docs/PROJECT_CONTEXT.md` (+ при необходимости `docs/SAFETY.md`).
 - Измерения/усреднение/энергия: `docs/measurements/MEASUREMENT_ARCHITECTURE_RU.md` (+ `docs/PROJECT_CONTEXT.md`).
 - Контур тока/контракт “1 шаг на период PWM”: `docs/design-notes/DN-001_MFDC_Current_Control.md` (+ `docs/ARCHITECTURE.md` при изменении границ).
-- Протокол/таймауты/коды ошибок: `docs/protocols/PROTOCOL_TK.md` (+ `docs/GLOSSARY.md` для новых терминов/состояний).
+- Протокол/таймауты/коды ошибок: `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (+ `docs/GLOSSARY.md` для новых терминов/состояний; legacy CAN — `docs/protocols/PROTOCOL_TK.md`).
 - Протокол связи с ПК (PCcom4): `docs/protocols/PCCOM4.02.md`.
 - Safety/latch/recovery/watchdog: `docs/SAFETY.md` (+ `docs/safety/*` при необходимости).
 - Минимальная регрессия/доказательства: `docs/TEST_PLAN.md`.
@@ -184,7 +185,7 @@ MFDC: ПО источника сварочного тока
 ### 3.1 Минимальный “контекст-стек” для задачи
 - `docs/CONTEXT_SNAPSHOT.md`
 - `docs/CODING_STANDARD_RU.md` (если будет патч/код: комментарии на русском, UTF-8/CRLF)
-- при необходимости: `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK.md`, `docs/protocols/PCCOM4.02.md`
+- при необходимости: `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (legacy: `docs/protocols/PROTOCOL_TK.md`), `docs/protocols/PCCOM4.02.md`
 - 1–3 релевантных файла кода (если задача про реализацию)
 
 ### 3.2 Обязательная мини-шапка (5 строк)

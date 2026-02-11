@@ -14,7 +14,7 @@
 - Тактирование: резонатор **ABM8AIG-16.000MHZ-4-T** (HSE)
 - ПО: **двухслойное**
   - быстрый контур (PWM/измерение/регулятор/fast protections): **без RTOS**, детерминированный (ISR/таймер)
-  - медленный контур (CAN/диагностика/логирование/процессная логика): **FreeRTOS**
+  - медленный контур (EtherCAT/диагностика/логирование/процессная логика): **FreeRTOS**
 
 ---
 
@@ -88,15 +88,16 @@
 ---
 
 ## 5) Интерфейсы и обмен
-- Основной интерфейс с ТК: **CAN FD** (см. `docs/protocols/PROTOCOL_TK.md`)
+- Основной интерфейс с ТК: **EtherCAT PDO** через **COMX 100CA-RE ↔ FMC** (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`, `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`)
+- Legacy/fallback (если включён): **CAN FD** профиль (см. `docs/protocols/PROTOCOL_TK.md`)
 - Формат обмена:
   - Команда: `I_ref_cmd`, `enable`, `seq` (и опциональные лимиты)
   - Ответ: `seq_applied`, `I_ref_used`, `I_per`, `U_per`, `state`, `fault_word`, `limit_word`, счётчики ошибок
 - Политика таймаутов:
   - Soft-timeout: **5 мс** (Draft 0.2) → controlled stop / спад `I_ref_used` по политике
   - Hard-timeout: **20 мс** (Draft 0.2) → **запрет сварки + FAULT** (latch по политике)
-  - Bus-off/ошибки линии: **без ABOM** (Draft 0.2), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/PROTOCOL_TK.md` и `docs/SAFETY.md`)
-- Интерфейс “плата ↔ ПК” по USB-UART: **FT232H** + **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой CAN-кадров, см. `docs/protocols/PCCOM4.02.md`)
+  - Legacy CAN: bus-off/ошибки линии: **без ABOM** (Draft 0.2), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/PROTOCOL_TK.md` и `docs/SAFETY.md`)
+- Интерфейс “плата ↔ ПК” по USB-UART: **FT232H** + **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой CAN-кадров для legacy CAN, см. `docs/protocols/PCCOM4.02.md`)
 - Неволатильные настройки/калибровки:
   - Хранение: **внутренняя Flash** МК (проектный NVM storage).
   - Safety-инвариант: запись во Flash разрешена **только** в `IDLE` (PWM OFF, сварка запрещена).
@@ -154,7 +155,8 @@
 - Каталог документов: `docs/DOCS_INDEX.md`
 - Архитектура ПО: `docs/ARCHITECTURE.md`
 - Политика безопасности/аварий: `docs/SAFETY.md`
-- Протокол ТК (CAN): `docs/protocols/PROTOCOL_TK.md`
+- Протокол ТК (EtherCAT PDO): `docs/protocols/PROTOCOL_TK_ETHERCAT.md`
+- Протокол ТК (CAN, legacy/fallback): `docs/protocols/PROTOCOL_TK.md`
 - Протокол плата ↔ ПК (USB-UART, PCcom4): `docs/protocols/PCCOM4.02.md`
 - План тестов: `docs/TEST_PLAN.md`
 - Skills: `.codex/skills/README.md`

@@ -6,14 +6,14 @@ This document adapts Safety-by-Design principles to the concrete MFDC welding cu
 - MCU: STM32G474
 - Current sensing: Rogowski coil + AD7380
 - Power stage drivers: SKYPER 42R (x2), SEMiX252GB12 modules
-- Control: PWM 1–4 kHz, CAN control loop 1 kHz
+- Control: PWM 1–4 kHz, EtherCAT PDO command loop 1 kHz
 
 ---
 
 ## 2. System Architecture Overview
 The source acts as a **fast deterministic current actuator**, while the Technological Controller (TC) performs process-level control.
 
-Safety principle: **Energy removal must not rely solely on software or CAN communication.**
+Safety principle: **Energy removal must not rely solely on software or EtherCAT communication.**
 
 ---
 
@@ -43,11 +43,11 @@ Safety principle: **Energy removal must not rely solely on software or CAN commu
   - ADC plausibility check (Rogowski + AD7380)
   - dI/dt and Imax supervision
 
-### SF-4: Loss of Control Command (CAN Timeout)
+### SF-4: Loss of Control Command (EtherCAT PDO Timeout)
 - HW:
-  - None (information-level)
+- None (information-level)
 - SW:
-  - CAN watchdog
+  - EtherCAT/PDO watchdog (staleness / timeout)
   - Iref ramp to zero
   - Disable if timeout persists
 
@@ -72,9 +72,9 @@ Safety principle: **Energy removal must not rely solely on software or CAN commu
 - Residual risk: Low–Medium
 
 ### Hazard: Unintended energization
-- Hazardous situation: CAN communication fault
+- Hazardous situation: EtherCAT communication fault
 - Mitigations:
-  - CAN timeout
+  - EtherCAT PDO timeout
   - Default-safe startup (PWM disabled)
 - Residual risk: Low
 
@@ -82,7 +82,7 @@ Safety principle: **Energy removal must not rely solely on software or CAN commu
 
 ## 5. Determinism & Timing Assurance
 
-- Control ISR isolated from CAN and logging
+- Control ISR isolated from EtherCAT and logging
 - ADC sampling synchronized to PWM
 - Worst-case latency budget documented
 - Logging via DMA only, never blocking ISR
@@ -96,7 +96,7 @@ Safety principle: **Energy removal must not rely solely on software or CAN commu
   - Saturation logic
   - Fault thresholds
 - Integration tests:
-  - CAN timeout behavior
+  - EtherCAT PDO timeout behavior
   - Fault injection (ADC freeze, watchdog reset)
 - Traceability:
   - Each safety function ↔ test case

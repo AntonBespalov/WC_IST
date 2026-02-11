@@ -76,7 +76,7 @@
 ### 5.1 Safety-кейсы
 
 - fault драйвера → PWM off;
-- CAN timeout → safe state;
+- таймаут связи с ТК (EtherCAT PDO stale) → safe state;
 - зависание fast loop.
 
 ---

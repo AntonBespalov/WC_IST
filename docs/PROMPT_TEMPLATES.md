@@ -201,21 +201,21 @@
 
 ## Шаблон 5 — Протокол ТК (дизайн/изменение)
 Когда применять:
-- Нужно определить/изменить CAN-протокол обмена с ТК: поля, таймауты, seq/CRC, коды ошибок, совместимость.
+- Нужно определить/изменить протокол обмена с ТК по EtherCAT PDO: поля RxPDO/TxPDO, таймауты, seq/валидаторы, коды ошибок, совместимость.
 - Требуется закрыть P0/P1 пункты из `docs/MISSING_SPECS_IMPLEMENTATION_RU.md` по сериализации/валидаторам.
-- Любые изменения, которые должны синхронно отразиться в `PROTOCOL_TK.md` и в DBC для сниффинга.
+- Любые изменения, которые должны синхронно отразиться в `PROTOCOL_TK_ETHERCAT.md` (и, при наличии legacy CAN, в `PROTOCOL_TK.md`/DBC для сниффинга).
 
 **Skills:** `workflow-spec-tests-code`, `patch-discipline-small-diffs` (если кодогенерация)
 
-> Используй `docs/protocols/PROTOCOL_TK.md` как источник правды (или заполни шаблон, если файла ещё нет).  
+> Используй `docs/protocols/PROTOCOL_TK_ETHERCAT.md` как источник правды (legacy CAN: `docs/protocols/PROTOCOL_TK.md`).  
 > Контекст: [вставь `docs/CONTEXT_SNAPSHOT.md`].  
 > Задача: <определить/изменить поля/таймауты/коды ошибок>.  
 > Если в рамках задачи нужен патч/код (кодогенерация/валидаторы/сериализация): соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).  
 > STM32CubeIDE: если патч добавляет код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).  
 > Выход:  
-> - изменения в `docs/protocols/PROTOCOL_TK.md` (в виде предложенного текста),  
-> - (если меняется раскладка полей) обновление `docs/protocols/tk_protocol.dbc` для сниффинга,  
-> - список тестов протокола (timeout/seq/crc/bus-off),  
+> - изменения в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` (в виде предложенного текста),  
+> - (если включён legacy CAN и меняется раскладка) обновление `docs/protocols/tk_protocol.dbc` для сниффинга,  
+> - список тестов протокола (timeout/seq/валидаторы; для legacy CAN — bus-off),  
 > - совместимость с текущей реализацией (что сломается).
 
 > Mini-шапка MUST заполнена выше; если нет — сначала `ask-questions-embedded-stm32-freertos`.

@@ -78,7 +78,7 @@
 3) Watchdog/reset сценарий (безопасное поведение, без авто-возобновления энергии).  
 4) Service timeout > 20 мс по интерфейсу активации.  
 5) `ADC invalid/stuck`.  
-6) Если интерфейс — CAN/ТК: CAN timeout/bus-off в режиме `ManualDuty`.
+6) Если источник команд — ТК (EtherCAT PDO): таймаут/останов обновления PDO в режиме `ManualDuty`. Если включён legacy CAN — CAN timeout/bus-off в режиме `ManualDuty`.
 
 ---
 
