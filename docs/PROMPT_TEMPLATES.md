@@ -141,7 +141,7 @@
 > Реализуй: <конкретная фича/фикс>.  
 > Разрешённые файлы: <список>.  
 > Запрещено: рефакторинг/переименования/форматирование вне нужного.  
-> Стандарт кода: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для safety/RT мест — краткий блок `// SAFETY:` с инвариантами/причинами решений; для нетривиальных функций — “скелет алгоритма” `Шаг 1..N` и вынос подалгоритмов в helper-функции при необходимости).  
+> Стандарт кода: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — краткий блок `// SAFETY:`; для нетривиальных функций — “скелет алгоритма” `Шаг 1..N` и вынос подалгоритмов в helper-функции при необходимости).  
 > STM32CubeIDE: если добавляешь код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).  
 > Выход:  
 > - кратко: какие файлы изменил и почему,  
@@ -205,7 +205,7 @@
 > Используй `docs/protocols/PROTOCOL_TK.md` как источник правды (или заполни шаблон, если файла ещё нет).  
 > Контекст: [вставь `docs/CONTEXT_SNAPSHOT.md`].  
 > Задача: <определить/изменить поля/таймауты/коды ошибок>.  
-> Если в рамках задачи нужен патч/код (кодогенерация/валидаторы/сериализация): соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).  
+> Если в рамках задачи нужен патч/код (кодогенерация/валидаторы/сериализация): соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).  
 > STM32CubeIDE: если патч добавляет код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).  
 > Выход:  
 > - изменения в `docs/protocols/PROTOCOL_TK.md` (в виде предложенного текста),  
@@ -256,7 +256,7 @@
 > - план инструментирования (какие GPIO toggles/счётчики/логи добавить),  
 > - минимальный эксперимент для изоляции (HW vs SW),  
 > - только потом — минимальный фикс и как проверить.
-> Если фикс включает патч/код: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).
+> Если фикс включает патч/код: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).
 > STM32CubeIDE: если патч добавляет код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).
 
 > Mini-шапка MUST заполнена выше; если нет — сначала `ask-questions-embedded-stm32-freertos`.
@@ -280,7 +280,7 @@
 > - worst-case оценка/гипотезы по времени выполнения,  
 > - что именно измерить на железе (DBG0/DBG1 + BKIN_RAW/PWM_OUT),  
 > - минимальные правки для снижения риска.
-> Если “минимальные правки” включают патч/код: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).
+> Если “минимальные правки” включают патч/код: соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).
 > STM32CubeIDE: если патч добавляет код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).
 
 > Mini-шапка MUST заполнена выше; если нет — сначала `ask-questions-embedded-stm32-freertos`.
@@ -318,7 +318,7 @@
 > Источники правды: `docs/protocols/PCCOM4.02.md` (база) и `docs/protocols/PCCOM4.02_PROJECT.md` (профиль проекта).  
 > Контекст: [вставь `docs/CONTEXT_SNAPSHOT.md`].  
 > Задача: <добавить/изменить узел/операцию/формат данных/политику (service mode, self-test, scope, CAN-tunnel, …)>.  
-> Если в рамках задачи нужен патч/код (device/host): соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).  
+> Если в рамках задачи нужен патч/код (device/host): соблюдать `docs/CODING_STANDARD_RU.md` (комментарии на русском, UTF-8/CRLF; для всех функций — Doxygen минимум `@brief/@param/@retval`; для публичного API — размещать Doxygen на объявлениях в `.h`; для safety/RT мест — блок `// SAFETY:` с инвариантами/причинами решений).  
 > STM32CubeIDE: если патч добавляет код в каталог вне текущих source roots — обнови include paths и `sourceEntries` в `.cproject` и проверь это в Project Properties (см. `docs/HOW_TO_USE_RU.md` / раздел 5).  
 > Выход:  
 > - предложенные изменения текста в `docs/protocols/PCCOM4.02_PROJECT.md`,  
