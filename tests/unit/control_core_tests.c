@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "control_core.h"
 
@@ -11,6 +12,19 @@
 typedef struct {
   int failed; /**< Количество проваленных проверок, [шт]. */
 } test_ctx_t;
+
+/**
+ * @brief Тип функции теста.
+ */
+typedef void (*test_fn_t)(test_ctx_t *ctx);
+
+/**
+ * @brief Описание одного теста.
+ */
+typedef struct {
+  const char *name; /**< Имя теста (стабильный идентификатор), [строка]. */
+  test_fn_t fn;     /**< Указатель на функцию теста. */
+} test_case_t;
 
 /**
  * @brief Получить модуль числа.
@@ -545,23 +559,142 @@ static void test_anti_windup_holds_integrator(test_ctx_t *ctx)
 }
 
 /**
- * @brief Точка входа для L1 unit tests.
- * @return Код завершения (0 = OK).
+ * @brief Проверить, что имя теста совпадает с фильтром.
+ * @param name Имя теста, [строка].
+ * @param filter Фильтр (подстрока) или NULL, [строка].
+ * @return true, если тест должен быть запущен.
  */
-int main(void)
+static bool test_matches_filter(const char *name, const char *filter)
+{
+  if (filter == NULL)
+  {
+    return true;
+  }
+  if (filter[0] == '\0')
+  {
+    return true;
+  }
+  return (strstr(name, filter) != NULL);
+}
+
+/**
+ * @brief Вывести список доступных тестов.
+ * @param tests Массив тестов.
+ * @param count Количество тестов, [шт].
+ * @return None.
+ */
+static void test_print_list(const test_case_t *tests, size_t count)
+{
+  (void)printf("Available tests (%zu):\n", count);
+  for (size_t i = 0; i < count; ++i)
+  {
+    (void)printf("  %s\n", tests[i].name);
+  }
+}
+
+/**
+ * @brief Запустить набор тестов с фильтром по имени.
+ * @param ctx Контекст тестов.
+ * @param tests Массив тестов.
+ * @param count Количество тестов, [шт].
+ * @param filter Фильтр по имени (подстрока) или NULL.
+ * @return Количество реально запущенных тестов, [шт].
+ */
+static size_t test_run_filtered(test_ctx_t *ctx,
+                                const test_case_t *tests,
+                                size_t count,
+                                const char *filter)
+{
+  size_t executed = 0;
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    if (!test_matches_filter(tests[i].name, filter))
+    {
+      continue;
+    }
+    executed += 1u;
+    tests[i].fn(ctx);
+  }
+
+  return executed;
+}
+
+/**
+ * @brief Точка входа для L1 unit tests.
+ * @param argc Количество аргументов командной строки, [шт].
+ * @param argv Массив аргументов командной строки.
+ * @return Код завершения (0 = OK).
+ *
+ * @details
+ * Поддерживаемые режимы:
+ * - без аргументов: запустить все тесты;
+ * - `--list`: вывести список тестов;
+ * - `--filter <substring>`: запустить тесты, чьи имена содержат подстроку;
+ * - `--run <name>`: запустить один тест по точному имени.
+ */
+int main(int argc, char **argv)
 {
   test_ctx_t ctx = {0};
 
-  test_disable_resets_integrator(&ctx);
-  test_meas_invalid_blocks_control(&ctx);
-  test_cmd_invalid_blocks_control(&ctx);
-  test_num_invalid_blocks_control(&ctx);
-  test_cfg_invalid_blocks_control(&ctx);
-  test_integrator_clamp(&ctx);
-  test_slew_rate_limit(&ctx);
-  test_iref_clamp_flag(&ctx);
-  test_saturation_flags_and_counters(&ctx);
-  test_anti_windup_holds_integrator(&ctx);
+  const test_case_t tests[] = {
+    {"disable_resets_integrator", test_disable_resets_integrator},
+    {"meas_invalid_blocks_control", test_meas_invalid_blocks_control},
+    {"cmd_invalid_blocks_control", test_cmd_invalid_blocks_control},
+    {"num_invalid_blocks_control", test_num_invalid_blocks_control},
+    {"cfg_invalid_blocks_control", test_cfg_invalid_blocks_control},
+    {"integrator_clamp", test_integrator_clamp},
+    {"slew_rate_limit", test_slew_rate_limit},
+    {"iref_clamp_flag", test_iref_clamp_flag},
+    {"saturation_flags_and_counters", test_saturation_flags_and_counters},
+    {"anti_windup_holds_integrator", test_anti_windup_holds_integrator},
+  };
+  const size_t test_count = sizeof(tests) / sizeof(tests[0]);
+
+  const char *filter = NULL;
+  bool list_only = false;
+  bool exact_run = false;
+
+  if (argc == 1)
+  {
+    /* default */
+  }
+  else if ((argc == 2) && (strcmp(argv[1], "--list") == 0))
+  {
+    list_only = true;
+  }
+  else if ((argc == 3) && (strcmp(argv[1], "--filter") == 0))
+  {
+    filter = argv[2];
+  }
+  else if ((argc == 3) && (strcmp(argv[1], "--run") == 0))
+  {
+    filter = argv[2];
+    exact_run = true;
+  }
+  else
+  {
+    (void)printf("Usage:\n");
+    (void)printf("  %s\n", argv[0]);
+    (void)printf("  %s --list\n", argv[0]);
+    (void)printf("  %s --filter <substring>\n", argv[0]);
+    (void)printf("  %s --run <name>\n", argv[0]);
+    return 2;
+  }
+
+  if (list_only)
+  {
+    test_print_list(tests, test_count);
+    return 0;
+  }
+
+  const size_t executed = test_run_filtered(&ctx, tests, test_count, filter);
+  if (exact_run && (executed != 1u))
+  {
+    (void)printf("FAIL: test '%s' not found.\n", filter);
+    test_print_list(tests, test_count);
+    return 2;
+  }
 
   if (ctx.failed != 0)
   {

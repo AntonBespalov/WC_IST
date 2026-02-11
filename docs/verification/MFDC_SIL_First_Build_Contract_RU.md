@@ -55,6 +55,10 @@ I4) **SIL не заменяет HIL/on-target** (см. `docs/verification/MFDC_R
 - `tests/traces/` рекомендуется сохранить как “каноническое место” (см. `docs/ARCHITECTURE.md` / 4.2);
 - `src/core/` должен быть физически отделён от `src/platform/`, чтобы исключить “случайные” include/HAL-зависимости.
 
+Практическая ремарка (текущее состояние репозитория):
+- роль “core” сейчас выполняет каталог `Fw/` (например, `Fw/control/`), который собирается на host без HAL/RTOS;
+- каталог `Core/` и `Drivers/` относятся к STM32Cube-проекту (target-контур) и не должны попадать в host-сборку.
+
 ---
 
 ## 4) Система сборки host-контуров
@@ -88,6 +92,46 @@ Host CMake должен собирать (как минимум):
 - Nightly/release: `L1` + `L2`.
 
 ---
+
+### 4.3 Локальный запуск и отладка L1 (host)
+
+Короткий путь через CMake Presets (см. `CMakePresets.json`):
+
+- Configure:
+  - `cmake --preset host`
+- Build:
+  - `cmake --build --preset host`
+- Run L1 (CTest, с лейблом):
+  - `ctest --preset host-l1`
+
+Примечание (multi-config генераторы, например Visual Studio):
+- при запуске CTest указывай конфигурацию: `ctest --test-dir build/host_local -C RelWithDebInfo -L L1`
+  - иначе CTest может вывести `No tests were found` (т.к. не выбран Debug/Release/RelWithDebInfo).
+  - в preset `host-l1` конфигурация уже задана, поэтому `ctest --preset host-l1` достаточно.
+
+Сохранение JUnit XML (полезно для Jenkins/локальной диагностики):
+- multi-config (Visual Studio): `ctest --test-dir build/host_local -C RelWithDebInfo --output-on-failure --output-junit build/host_local/junit_l1.xml -L L1`
+- single-config (Makefiles/Ninja): `ctest --test-dir build/host_local --output-on-failure --output-junit build/host_local/junit_l1.xml -L L1`
+
+Запуск и пошаговая отладка тестов как обычного executable:
+- проще всего запускать из корня репозитория (например, `D:\projects\WC_IST`), указывая относительный путь.
+- чтобы отлаживать один конкретный тест — используй `--run <name>`;
+- чтобы отлаживать все тесты — запускай без аргументов (или задай пустые `args: []` в VS Code `launch.json`);
+- чтобы отлаживать поднабор — используй `--filter <substring>`.
+- список тестов:
+  - multi-config (Visual Studio, PowerShell): `.\build\host_local\tests\unit\RelWithDebInfo\control_core_tests.exe --list`
+  - single-config (Makefiles/Ninja, bash): `./build/host_local/tests/unit/control_core_tests --list`
+- запуск одного теста (удобно для отладки):
+  - multi-config (Visual Studio, PowerShell): `.\build\host_local\tests\unit\RelWithDebInfo\control_core_tests.exe --run slew_rate_limit`
+  - single-config (Makefiles/Ninja, bash): `./build/host_local/tests/unit/control_core_tests --run slew_rate_limit`
+- запуск группы тестов по подстроке:
+  - multi-config (Visual Studio, PowerShell): `.\build\host_local\tests\unit\RelWithDebInfo\control_core_tests.exe --filter invalid`
+  - single-config (Makefiles/Ninja, bash): `./build/host_local/tests/unit/control_core_tests --filter invalid`
+
+IDE/Debugger:
+- тесты — обычные host-приложения, поэтому их можно отлаживать по шагам (breakpoints/step-into) в IDE, которая умеет CMake Presets;
+- рекомендуемый билд-тип для отладки: `RelWithDebInfo` (символы + близко к релизному коду).
+- для VS Code можно использовать шаблон `docs/verification/vscode/launch.l1.example.json` (скопировать в `.vscode/launch.json` и подправить при необходимости).
 
 ## 5) Контракт трасс (golden traces)
 
