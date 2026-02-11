@@ -10,6 +10,7 @@
 - `PROJECT_CONTEXT.md` — Ground Truth (железо/тайминги/safe state).
 - `GLOSSARY.md` — термины.
 - `ARCHITECTURE.md` — границы модулей, fast/slow домены, тестируемость.
+- `ENGINEERING_CONTRACT.md` — общий инженерный контракт разработки (defensive design, safety/RT, proof).
 - `SAFETY.md` — safety-политика и proof obligations.
 - `protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN, legacy/fallback).
 - `protocols/PROTOCOL_TK_ETHERCAT.md` — протокол обмена с ТК (EtherCAT PDO).

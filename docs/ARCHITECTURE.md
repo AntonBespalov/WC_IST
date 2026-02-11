@@ -9,6 +9,7 @@
 Источники правды:
 - `docs/PROJECT_CONTEXT.md` — железо/тайминги/политики (Ground Truth)
 - `docs/GLOSSARY.md` — определения терминов
+- `docs/ENGINEERING_CONTRACT.md` — общий инженерный контракт разработки (defensive design, safety/RT, proof)
 
 Терминология: в тексте «Источник»/«плата источника» может также называться «ИСТ» или «УСПФ» (см. `docs/GLOSSARY.md`).
 

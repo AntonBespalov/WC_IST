@@ -12,11 +12,12 @@
 2) `docs/GLOSSARY.md` — термины и определения
 3) `docs/ARCHITECTURE.md` — модульные границы, тестируемость (host/SIL/HIL/on-target)
 4) `docs/SAFETY.md` — расширенная политика аварий/восстановления (если есть)
-5) `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
-6) `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (плата ↔ ПК по USB-UART)
-7) `docs/TEST_PLAN.md` — план тестов/матрица требований (если есть)
-8) `docs/PROMPT_TEMPLATES.md` — шаблоны запросов к Codex/LLM
-9) `.codex/skills/*` — правила формата ответов и акценты (skills не должны спорить с контекстом)
+5) `docs/ENGINEERING_CONTRACT.md` — общий инженерный контракт разработки (defensive design, safety/RT, proof)
+6) `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
+7) `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (плата ↔ ПК по USB-UART)
+8) `docs/TEST_PLAN.md` — план тестов/матрица требований (если есть)
+9) `docs/PROMPT_TEMPLATES.md` — шаблоны запросов к Codex/LLM
+10) `.codex/skills/*` — правила формата ответов и акценты (skills не должны спорить с контекстом)
 
 Каталог полезных доп. документов: `docs/DOCS_INDEX.md`.
 
