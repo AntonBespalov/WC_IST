@@ -46,7 +46,7 @@ typedef enum {
  */
 typedef struct {
   uint32_t memory_size_bytes;          /**< Размер доступного окна PSRAM, [байт]. */
-  size_t max_chunk_bytes;              /**< Максимальный размер одной транзакции, [байт]. */
+  size_t max_chunk_bytes;              /**< Максимальный размер одной транзакции, [байт], не больше BSP tCEM-safe лимита. */
   uint8_t max_retries_per_chunk;       /**< Количество повторов на chunk, [раз]. */
   uint8_t degrade_error_threshold;     /**< Порог ошибок подряд для DEGRADED, [раз]. */
 } psram_cfg_t;
@@ -79,7 +79,7 @@ typedef struct {
  * @param cfg Конфигурация драйвера.
  * @param port Таблица callback порт-слоя QSPI.
  * @retval PSRAM_ERR_OK Инициализация прошла успешно.
- * @retval PSRAM_ERR_PARAM Неверные аргументы конфигурации/API.
+ * @retval PSRAM_ERR_PARAM Неверные аргументы конфигурации/API (в т.ч. нарушение tCEM-safe лимита chunk).
  * @retval PSRAM_ERR_TIMEOUT Таймаут инициализации порта.
  * @retval PSRAM_ERR_BUS Ошибка шины при инициализации.
  */

@@ -133,7 +133,8 @@ static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
     .low_level_ctx = mock,
     .init = mock_qspi_init,
     .read = mock_qspi_read,
-    .write = mock_qspi_write
+    .write = mock_qspi_write,
+    .tcem_safe_max_chunk_bytes = 16u
   };
 
   const psram_error_t init_result = psram_init(driver, &cfg, &port);
@@ -141,6 +142,36 @@ static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
   {
     (void)printf("driver init failed in test fixture\n");
   }
+}
+
+
+/**
+ * @brief Тест: init отклоняет chunk больше tCEM-safe лимита BSP.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_init_rejects_chunk_above_tcem_limit(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+
+  const psram_cfg_t cfg = {
+    .memory_size_bytes = MOCK_PSRAM_SIZE_BYTES,
+    .max_chunk_bytes = 32u,
+    .max_retries_per_chunk = 2u,
+    .degrade_error_threshold = 2u
+  };
+  const qspi_port_api_t port = {
+    .low_level_ctx = &mock,
+    .init = mock_qspi_init,
+    .read = mock_qspi_read,
+    .write = mock_qspi_write,
+    .tcem_safe_max_chunk_bytes = 16u
+  };
+
+  test_expect_true(ctx,
+                   psram_init(&driver, &cfg, &port) == PSRAM_ERR_PARAM,
+                   "init should reject chunk above tCEM-safe limit");
 }
 
 static void test_bounds_and_params(test_ctx_t *ctx)
@@ -249,6 +280,7 @@ int main(void)
     const char *name;
     void (*fn)(test_ctx_t *ctx);
   } cases[] = {
+    {"init_rejects_chunk_above_tcem_limit", test_init_rejects_chunk_above_tcem_limit},
     {"bounds_and_params", test_bounds_and_params},
     {"write_read_and_chunking", test_write_read_and_chunking},
     {"degraded_after_repeated_errors", test_degraded_after_repeated_errors},

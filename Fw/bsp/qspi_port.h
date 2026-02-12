@@ -40,6 +40,7 @@ typedef qspi_port_status_t (*qspi_port_init_fn_t)(void *low_level_ctx);
  * @retval QSPI_PORT_OK Чтение успешно.
  * @retval QSPI_PORT_TIMEOUT Таймаут транзакции.
  * @retval QSPI_PORT_BUS Ошибка шины/контроллера.
+ * @note Реализация MUST завершать команду подъёмом CE# (CS#) после каждой транзакции.
  */
 typedef qspi_port_status_t (*qspi_port_read_fn_t)(void *low_level_ctx,
                                                   uint32_t address_start,
@@ -55,12 +56,21 @@ typedef qspi_port_status_t (*qspi_port_read_fn_t)(void *low_level_ctx,
  * @retval QSPI_PORT_OK Запись успешна.
  * @retval QSPI_PORT_TIMEOUT Таймаут транзакции.
  * @retval QSPI_PORT_BUS Ошибка шины/контроллера.
+ * @note Реализация MUST завершать команду подъёмом CE# (CS#) после каждой транзакции.
  */
 typedef qspi_port_status_t (*qspi_port_write_fn_t)(void *low_level_ctx,
                                                    uint32_t address_start,
                                                    const uint8_t *buffer_src,
                                                    size_t length_bytes);
 
+
+/**
+ * @brief Ограничение payload одной транзакции для соблюдения tCEM.
+ * @details
+ * Значение задаёт BSP/HAL слой с учётом частоты SCK, режима линий (SPI/QPI),
+ * служебных циклов команды/адреса/dummy и лимита tCEM из datasheet APS6404L.
+ * Драйвер проверяет, что `cfg.max_chunk_bytes` не превышает этот предел.
+ */
 /**
  * @brief Таблица функций порт-слоя QSPI.
  */
@@ -69,6 +79,7 @@ typedef struct {
   qspi_port_init_fn_t init;          /**< Инициализация контроллера/микросхемы. */
   qspi_port_read_fn_t read;          /**< Чтение из PSRAM. */
   qspi_port_write_fn_t write;        /**< Запись в PSRAM. */
+  size_t tcem_safe_max_chunk_bytes;  /**< Максимальный payload chunk при CE# low <= tCEM, [байт]. */
 } qspi_port_api_t;
 
 #ifdef __cplusplus

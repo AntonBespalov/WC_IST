@@ -209,12 +209,19 @@ psram_error_t psram_init(psram_ctx_t *ctx,
   /* Шаг 1: проверка входных параметров и конфигурации. */
   /* Шаг 2: копирование конфигурации/портовых callbacks в локальный контекст. */
   /* Шаг 3: инициализация low-level QSPI и перевод состояния в READY/FAULT. */
+
+  // SAFETY: cfg.max_chunk_bytes ограничен tCEM-safe пределом BSP (CE# low pulse width).
   if ((ctx == NULL) || (port == NULL) || (port->init == NULL) || (port->read == NULL) || (port->write == NULL))
   {
     return PSRAM_ERR_PARAM;
   }
 
   if (!psram_is_cfg_valid(cfg))
+  {
+    return PSRAM_ERR_PARAM;
+  }
+
+  if ((port->tcem_safe_max_chunk_bytes == 0u) || (cfg->max_chunk_bytes > port->tcem_safe_max_chunk_bytes))
   {
     return PSRAM_ERR_PARAM;
   }
