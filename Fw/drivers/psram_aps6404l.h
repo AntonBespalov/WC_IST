@@ -71,6 +71,7 @@ typedef struct {
   psram_status_t status;               /**< Текущее состояние и диагностика. */
   bool lock_active;                    /**< Признак активной транзакции/критической секции. */
   uint32_t owner_task_id;              /**< Идентификатор владельца lock, [id]. */
+  uint32_t timing_epoch_snapshot;      /**< Зафиксированная версия timing-конфигурации QSPI после init/recover, [счётчик]. */
 } psram_ctx_t;
 
 /**
@@ -97,7 +98,7 @@ psram_error_t psram_init(psram_ctx_t *ctx,
  * @retval PSRAM_ERR_OK Операция успешна.
  * @retval PSRAM_ERR_PARAM Невалидные аргументы или выход за границы памяти.
  * @retval PSRAM_ERR_NOT_INIT Драйвер не инициализирован.
- * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности.
+ * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности (в т.ч. при изменении timing_epoch).
  * @retval PSRAM_ERR_TIMEOUT Таймаут на уровне port API.
  * @retval PSRAM_ERR_BUS Ошибка шины на уровне port API.
  * @retval PSRAM_ERR_LOCKED Конфликт сериализации доступа.
@@ -118,7 +119,7 @@ psram_error_t psram_read(psram_ctx_t *ctx,
  * @retval PSRAM_ERR_OK Операция успешна.
  * @retval PSRAM_ERR_PARAM Невалидные аргументы или выход за границы памяти.
  * @retval PSRAM_ERR_NOT_INIT Драйвер не инициализирован.
- * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности.
+ * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности (в т.ч. при изменении timing_epoch).
  * @retval PSRAM_ERR_TIMEOUT Таймаут на уровне port API.
  * @retval PSRAM_ERR_BUS Ошибка шины на уровне port API.
  * @retval PSRAM_ERR_LOCKED Конфликт сериализации доступа.

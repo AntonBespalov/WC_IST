@@ -70,6 +70,7 @@ typedef qspi_port_status_t (*qspi_port_write_fn_t)(void *low_level_ctx,
  * Значение задаёт BSP/HAL слой с учётом частоты SCK, режима линий (SPI/QPI),
  * служебных циклов команды/адреса/dummy и лимита tCEM из datasheet APS6404L.
  * Драйвер проверяет, что `cfg.max_chunk_bytes` не превышает этот предел.
+ * При runtime-изменении таймингов BSP обязан инкрементировать `timing_epoch`.
  */
 /**
  * @brief Таблица функций порт-слоя QSPI.
@@ -80,6 +81,7 @@ typedef struct {
   qspi_port_read_fn_t read;          /**< Чтение из PSRAM. */
   qspi_port_write_fn_t write;        /**< Запись в PSRAM. */
   size_t tcem_safe_max_chunk_bytes;  /**< Максимальный payload chunk при CE# low <= tCEM, [байт]. */
+  uint32_t timing_epoch;              /**< Версия timing-конфигурации QSPI (инкремент при смене SCK/prescaler/mode), [счётчик]. */
 } qspi_port_api_t;
 
 #ifdef __cplusplus

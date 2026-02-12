@@ -20,6 +20,7 @@ typedef struct {
   bool fail_always_bus;
   uint32_t read_calls;
   uint32_t write_calls;
+  uint32_t timing_epoch;
   psram_ctx_t *driver_for_reentry;
   bool reentry_test_enable;
   uint32_t reentry_task_id;
@@ -124,6 +125,8 @@ static qspi_port_status_t mock_qspi_write(void *low_level_ctx,
 
 static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
 {
+  mock->timing_epoch = 1u;
+
   const psram_cfg_t cfg = {
     .memory_size_bytes = MOCK_PSRAM_SIZE_BYTES,
     .max_chunk_bytes = 16u,
@@ -135,7 +138,8 @@ static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
     .init = mock_qspi_init,
     .read = mock_qspi_read,
     .write = mock_qspi_write,
-    .tcem_safe_max_chunk_bytes = 16u
+    .tcem_safe_max_chunk_bytes = 16u,
+    .timing_epoch = 1u
   };
 
   const psram_error_t init_result = psram_init(driver, &cfg, &port);
@@ -167,7 +171,8 @@ static void test_init_rejects_chunk_above_tcem_limit(test_ctx_t *ctx)
     .init = mock_qspi_init,
     .read = mock_qspi_read,
     .write = mock_qspi_write,
-    .tcem_safe_max_chunk_bytes = 16u
+    .tcem_safe_max_chunk_bytes = 16u,
+    .timing_epoch = 1u
   };
 
   test_expect_true(ctx,
@@ -245,6 +250,28 @@ static void test_state_recovers_to_ready_after_single_error(test_ctx_t *ctx)
   test_expect_true(ctx, status.consecutive_errors == 1u, "consecutive_errors should be incremented");
 }
 
+/**
+ * @brief Тест: смена timing_epoch переводит драйвер в DEGRADED и блокирует операции.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_timing_epoch_mismatch_degrades_driver(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  driver.port.timing_epoch += 1u;
+
+  uint8_t buffer[4] = {0u};
+  const psram_error_t read_result = psram_read(&driver, 5u, 0u, buffer, sizeof(buffer));
+  test_expect_true(ctx, read_result == PSRAM_ERR_NOT_READY, "timing mismatch should return NOT_READY");
+
+  psram_status_t status = {0};
+  (void)psram_get_status(&driver, &status);
+  test_expect_true(ctx, status.state == PSRAM_STATE_DEGRADED, "timing mismatch should force DEGRADED");
+}
+
 static void test_degraded_after_repeated_errors(test_ctx_t *ctx)
 {
   psram_ctx_t driver;
@@ -314,6 +341,30 @@ static void test_lock_serialization_same_task_conflict(test_ctx_t *ctx)
                    "reentrant access from same task should return LOCKED");
 }
 
+/**
+ * @brief Тест: recover с новым timing_epoch восстанавливает READY.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_recover_after_timing_epoch_change(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  driver.port.timing_epoch += 1u;
+  uint8_t buffer[2] = {1u, 2u};
+  (void)psram_write(&driver, 11u, 0u, buffer, sizeof(buffer));
+
+  test_expect_true(ctx,
+                   psram_recover(&driver, 11u) == PSRAM_ERR_OK,
+                   "recover should succeed after timing change");
+
+  psram_status_t status = {0};
+  (void)psram_get_status(&driver, &status);
+  test_expect_true(ctx, status.state == PSRAM_STATE_READY, "state should be READY after recover");
+}
+
 static void test_self_test_ok(test_ctx_t *ctx)
 {
   psram_ctx_t driver;
@@ -334,9 +385,11 @@ int main(void)
     {"bounds_and_params", test_bounds_and_params},
     {"write_read_and_chunking", test_write_read_and_chunking},
     {"state_recovers_to_ready_after_single_error", test_state_recovers_to_ready_after_single_error},
+    {"timing_epoch_mismatch_degrades_driver", test_timing_epoch_mismatch_degrades_driver},
     {"degraded_after_repeated_errors", test_degraded_after_repeated_errors},
     {"lock_serialization_conflict", test_lock_serialization_conflict},
     {"lock_serialization_same_task_conflict", test_lock_serialization_same_task_conflict},
+    {"recover_after_timing_epoch_change", test_recover_after_timing_epoch_change},
     {"self_test_ok", test_self_test_ok}
   };
 

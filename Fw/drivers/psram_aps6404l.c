@@ -73,6 +73,17 @@ static bool psram_is_range_valid(const psram_ctx_t *ctx, uint32_t address_start,
 }
 
 /**
+ * @brief Проверить, что timing-конфигурация QSPI не изменилась после init/recover.
+ * @param ctx Контекст драйвера.
+ * @retval true Версия timing-конфигурации совпадает.
+ * @retval false Версия timing-конфигурации изменилась.
+ */
+static bool psram_is_timing_epoch_valid(const psram_ctx_t *ctx)
+{
+  return (ctx->timing_epoch_snapshot == ctx->port.timing_epoch);
+}
+
+/**
  * @brief Попытаться захватить lock для сериализации task-доступа.
  * @param ctx Контекст драйвера.
  * @param requester_task_id Идентификатор task-клиента, [id].
@@ -235,6 +246,7 @@ psram_error_t psram_init(psram_ctx_t *ctx,
   ctx->status.total_write_transactions = 0u;
   ctx->lock_active = false;
   ctx->owner_task_id = 0u;
+  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
 
   const qspi_port_status_t init_status = ctx->port.init(ctx->port.low_level_ctx);
   if (init_status != QSPI_PORT_OK)
@@ -245,6 +257,7 @@ psram_error_t psram_init(psram_ctx_t *ctx,
     return error;
   }
 
+  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
   ctx->status.state = PSRAM_STATE_READY;
   psram_reset_error_counters(ctx);
   return PSRAM_ERR_OK;
@@ -299,6 +312,13 @@ psram_error_t psram_read(psram_ctx_t *ctx,
     return PSRAM_ERR_NOT_READY;
   }
 
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_NOT_READY);
+    ctx->status.state = PSRAM_STATE_DEGRADED;
+    return PSRAM_ERR_NOT_READY;
+  }
+
   if (!psram_is_range_valid(ctx, address_start, length_bytes))
   {
     return PSRAM_ERR_PARAM;
@@ -342,6 +362,13 @@ psram_error_t psram_write(psram_ctx_t *ctx,
 
   if ((ctx->status.state == PSRAM_STATE_DEGRADED) || (ctx->status.state == PSRAM_STATE_FAULT))
   {
+    return PSRAM_ERR_NOT_READY;
+  }
+
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_NOT_READY);
+    ctx->status.state = PSRAM_STATE_DEGRADED;
     return PSRAM_ERR_NOT_READY;
   }
 
@@ -455,6 +482,7 @@ psram_error_t psram_recover(psram_ctx_t *ctx, uint32_t requester_task_id)
     return result;
   }
 
+  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
   ctx->status.state = PSRAM_STATE_READY;
   psram_reset_error_counters(ctx);
   psram_release_lock(ctx, requester_task_id);
