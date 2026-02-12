@@ -38,8 +38,20 @@ typedef enum {
   PSRAM_ERR_TIMEOUT = 4,       /**< Таймаут низкоуровневой транзакции. */
   PSRAM_ERR_BUS = 5,           /**< Ошибка шины QSPI. */
   PSRAM_ERR_DATA_MISMATCH = 6, /**< Несовпадение write/readback. */
-  PSRAM_ERR_LOCKED = 7         /**< Конфликт сериализации доступа между task-клиентами. */
+  PSRAM_ERR_LOCKED = 7,        /**< Конфликт сериализации доступа между task-клиентами. */
+  PSRAM_ERR_TIMING_CHANGED = 8,/**< Обнаружено изменение timing-конфигурации QSPI, требуется recover. */
+  PSRAM_ERR_PORT_BUSY_RECOVER = 9 /**< Recovery отклонён: QSPI-порт не в idle после init. */
 } psram_error_t;
+
+/**
+ * @brief Причина последней неготовности драйвера.
+ */
+typedef enum {
+  PSRAM_NOT_READY_REASON_NONE = 0,           /**< Причина не зафиксирована. */
+  PSRAM_NOT_READY_REASON_STATE = 1,          /**< Драйвер в состоянии DEGRADED/FAULT. */
+  PSRAM_NOT_READY_REASON_TIMING_CHANGED = 2, /**< Изменился timing_epoch QSPI. */
+  PSRAM_NOT_READY_REASON_PORT_BUSY_RECOVER = 3 /**< Recovery отклонён из-за non-idle QSPI-порта. */
+} psram_not_ready_reason_t;
 
 /**
  * @brief Конфигурация драйвера APS6404L.
@@ -57,6 +69,7 @@ typedef struct {
 typedef struct {
   psram_state_t state;                 /**< Текущее состояние драйвера. */
   psram_error_t last_error;            /**< Последняя ошибка API/транзакции. */
+  psram_not_ready_reason_t last_not_ready_reason; /**< Причина последней неготовности, [enum]. */
   uint32_t consecutive_errors;         /**< Ошибок подряд, [раз]. */
   uint32_t total_read_transactions;    /**< Всего read chunk-транзакций, [раз]. */
   uint32_t total_write_transactions;   /**< Всего write chunk-транзакций, [раз]. */
@@ -98,7 +111,8 @@ psram_error_t psram_init(psram_ctx_t *ctx,
  * @retval PSRAM_ERR_OK Операция успешна.
  * @retval PSRAM_ERR_PARAM Невалидные аргументы или выход за границы памяти.
  * @retval PSRAM_ERR_NOT_INIT Драйвер не инициализирован.
- * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности (в т.ч. при изменении timing_epoch).
+ * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности.
+ * @retval PSRAM_ERR_TIMING_CHANGED Обнаружено изменение timing-конфигурации QSPI, требуется recover.
  * @retval PSRAM_ERR_TIMEOUT Таймаут на уровне port API.
  * @retval PSRAM_ERR_BUS Ошибка шины на уровне port API.
  * @retval PSRAM_ERR_LOCKED Конфликт сериализации доступа.
@@ -119,7 +133,8 @@ psram_error_t psram_read(psram_ctx_t *ctx,
  * @retval PSRAM_ERR_OK Операция успешна.
  * @retval PSRAM_ERR_PARAM Невалидные аргументы или выход за границы памяти.
  * @retval PSRAM_ERR_NOT_INIT Драйвер не инициализирован.
- * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности (в т.ч. при изменении timing_epoch).
+ * @retval PSRAM_ERR_NOT_READY Драйвер в состоянии неготовности.
+ * @retval PSRAM_ERR_TIMING_CHANGED Обнаружено изменение timing-конфигурации QSPI, требуется recover.
  * @retval PSRAM_ERR_TIMEOUT Таймаут на уровне port API.
  * @retval PSRAM_ERR_BUS Ошибка шины на уровне port API.
  * @retval PSRAM_ERR_LOCKED Конфликт сериализации доступа.
@@ -157,6 +172,7 @@ psram_error_t psram_get_status(const psram_ctx_t *ctx, psram_status_t *status_ou
  * @retval PSRAM_ERR_NOT_INIT Драйвер не инициализирован.
  * @retval PSRAM_ERR_TIMEOUT Таймаут инициализации порта.
  * @retval PSRAM_ERR_BUS Ошибка шины при инициализации.
+ * @retval PSRAM_ERR_PORT_BUSY_RECOVER Recovery отклонён: порт не idle после init.
  * @retval PSRAM_ERR_LOCKED Конфликт сериализации доступа.
  */
 psram_error_t psram_recover(psram_ctx_t *ctx, uint32_t requester_task_id);
