@@ -2,9 +2,6 @@
 #include <math.h>
 #include <stddef.h>
 
-// Максимальное число попыток получить согласованный снапшот команды.
-enum { CONTROL_CMD_SNAPSHOT_TRIES = 3 };
-
 /**
  * @brief Проверить валидность конфигурации регулятора.
  * @param cfg Указатель на конфигурацию.
@@ -139,10 +136,10 @@ void control_init(control_ctx_t *ctx, const control_cfg_t *cfg)
   ctx->cfg = *cfg;
   ctx->state.integrator = 0.0f;
   ctx->state.i_ref_used = 0.0f;
-  ctx->state.cmd.i_ref_cmd = 0.0f;
-  ctx->state.cmd.enable_cmd = false;
-  ctx->state.cmd.cmd_valid = false;
-  ctx->state.cmd_seq = 0u;
+  const control_cmd_t cmd_zero = {0};
+  ctx->state.cmd_buf[0] = cmd_zero;
+  ctx->state.cmd_buf[1] = cmd_zero;
+  atomic_init(&ctx->state.active_cmd_idx, 0u);
   ctx->state.cfg_valid = false;
   ctx->state.limit_hi_steps = 0u;
   ctx->state.limit_lo_steps = 0u;
@@ -151,9 +148,10 @@ void control_init(control_ctx_t *ctx, const control_cfg_t *cfg)
 
 void control_slow_step(control_ctx_t *ctx, const control_cmd_t *cmd)
 {
-  ctx->state.cmd_seq += 1u;
-  ctx->state.cmd = *cmd;
-  ctx->state.cmd_seq += 1u;
+  const uint32_t active_idx = atomic_load_explicit(&ctx->state.active_cmd_idx, memory_order_relaxed) & 1u;
+  const uint32_t next_idx = active_idx ^ 1u;
+  ctx->state.cmd_buf[next_idx] = *cmd;
+  atomic_store_explicit(&ctx->state.active_cmd_idx, next_idx, memory_order_release);
 }
 
 void control_fast_step(control_ctx_t *ctx, const control_meas_t *meas, bool allow, control_out_t *out)
@@ -163,23 +161,13 @@ void control_fast_step(control_ctx_t *ctx, const control_meas_t *meas, bool allo
 
   uint32_t flags = CONTROL_FLAG_NONE; /* [битовая маска] */
   control_cmd_t cmd_snapshot = {0};
-  bool cmd_snapshot_ok = false;
 
-  for (int attempt = 0; attempt < CONTROL_CMD_SNAPSHOT_TRIES; ++attempt)
-  {
-    const uint32_t seq_start = ctx->state.cmd_seq;
-    if ((seq_start & 1u) != 0u)
-    {
-      continue;
-    }
-    cmd_snapshot = ctx->state.cmd;
-    const uint32_t seq_end = ctx->state.cmd_seq;
-    if ((seq_start == seq_end) && ((seq_end & 1u) == 0u))
-    {
-      cmd_snapshot_ok = true;
-      break;
-    }
-  }
+  const uint32_t cmd_idx = atomic_load_explicit(&ctx->state.active_cmd_idx, memory_order_acquire) & 1u;
+
+  cmd_snapshot = ctx->state.cmd_buf[cmd_idx];
+
+  const bool cmd_snapshot_ok = true;
+
 
   if (!cmd_snapshot_ok)
   {

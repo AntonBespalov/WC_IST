@@ -1,6 +1,7 @@
 #ifndef CONTROL_CORE_H
 #define CONTROL_CORE_H
 
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -97,8 +98,8 @@ typedef struct {
 typedef struct {
   float integrator; /**< Состояние интегратора, [отн. ед.]. */
   float i_ref_used; /**< Последняя использованная уставка, [A]. */
-  control_cmd_t cmd; /**< Последняя принятая команда из slow-домена. */
-  uint32_t cmd_seq; /**< Счётчик для атомарного снапшота команды, [шаги]. */
+  control_cmd_t cmd_buf[2]; /**< Два буфера команды (double-buffer), [отн. ед.]. */
+  atomic_uint_fast32_t active_cmd_idx; /**< Индекс активного буфера, [индекс]. */
   bool cfg_valid; /**< Признак валидности конфигурации. */
   uint32_t limit_hi_steps; /**< Счётчик верхнего насыщения, [шаги]. */
   uint32_t limit_lo_steps; /**< Счётчик нижнего насыщения, [шаги]. */
