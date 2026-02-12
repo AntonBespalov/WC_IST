@@ -15,8 +15,14 @@
   - ISR от COMX/UART (если есть) — **минимальная**: только сигнал/notify/флаг;
   - fast loop (PWM-домен) не зависит от сетевых/сервисных стеков (см. `docs/CONTEXT_SNAPSHOT.md`).
 - Временной домен:
-  - целевой период команд ТК: 1 мс (best-effort; измерять фактический джиттер/возраст команды);
+  - целевой период команд ТК: **250 мкс (4 кГц)** (best-effort; измерять фактический джиттер/возраст команды);
   - watchdog по отсутствию/невалидности команд: временный дефолт `LinkTimeoutMs = 20` (TBD по измерениям).
+
+RT-механика (Draft):
+- COMX_IRQ → EXTI ISR: только `notify`/флаг (без чтения FMC/process image).
+- Обработка RxPDO/TxPDO: отдельная FreeRTOS task (высокий приоритет среди APP), читает process image в снапшот, валидирует и публикует “последнюю валидную” команду.
+- При вызове FreeRTOS API из ISR — NVIC priority ISR должен быть **ниже** `configMAX_SYSCALL_INTERRUPT_PRIORITY` (см. `ThirdParty/FreeRTOS/Config/FreeRTOSConfig.h`).
+- Бюджеты/критерии PASS: см. `docs/TEST_PLAN.md` и `docs/protocols/PROTOCOL_TK_ETHERCAT.md`.
 
 ## 2) Goal / Non-goals
 ### Goal

@@ -165,7 +165,13 @@ Debug GPIO / точки измерения:
 - worst-case длительность шага управления
 - jitter control_tick
 - ADC latency и потери кадров/таймауты
-- частота/задержка обмена с ТК (1 мс)
+- частота/задержка обмена с ТК (**250 мкс / 4 кГц**) + распределение `cmd_age_us`
+
+Критерии PASS для EtherCAT PDO 4 кГц (Draft, уточнить измерениями):
+- `COMX_IRQ → CMD_LATCHED` worst-case **≤ 250 мкс** (или документированное отклонение + причина)
+- `cmd_age_us` worst-case **<< soft-timeout** (ожидаемо < 1 мс при нормальной нагрузке)
+- jitter `control_tick`: при включении EtherCAT 4 кГц не ухудшается более чем на **+2 мкс** к baseline (OFF) в worst-case
+- `cnt_ctrl_overrun` не растёт в нормальном режиме; при искусственной перегрузке — controlled stop / fault по политике, без “варки вслепую”
 
 ---
 

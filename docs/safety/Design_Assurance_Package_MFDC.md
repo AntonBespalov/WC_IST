@@ -6,7 +6,7 @@ This document adapts Safety-by-Design principles to the concrete MFDC welding cu
 - MCU: STM32G474
 - Current sensing: Rogowski coil + AD7380
 - Power stage drivers: SKYPER 42R (x2), SEMiX252GB12 modules
-- Control: PWM 1–4 kHz, EtherCAT PDO command loop 1 kHz
+- Control: PWM 1–4 kHz, EtherCAT PDO command/status loop 4 kHz (250 us)
 
 ---
 

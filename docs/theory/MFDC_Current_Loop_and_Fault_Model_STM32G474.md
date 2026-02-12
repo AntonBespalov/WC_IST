@@ -1,5 +1,5 @@
 # Дополнение к архитектуре ПО MFDC-источника  
-## Детализация контура тока и fault-model (STM32G474 + AD7380 + Rogowski + EtherCAT PDO 1 кГц)
+## Детализация контура тока и fault-model (STM32G474 + AD7380 + Rogowski + EtherCAT PDO 4 кГц / 250 мкс)
 
 Связанный базовый документ: `MFDC_Software_Architecture_STM32G474.md`
 
