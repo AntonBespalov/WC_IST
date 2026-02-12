@@ -166,13 +166,6 @@ void control_fast_step(control_ctx_t *ctx, const control_meas_t *meas, bool allo
 
   cmd_snapshot = ctx->state.cmd_buf[cmd_idx];
 
-  const bool cmd_snapshot_ok = true;
-
-
-  if (!cmd_snapshot_ok)
-  {
-    flags |= CONTROL_FLAG_CMD_INVALID;
-  }
   if (!cmd_snapshot.cmd_valid)
   {
     flags |= CONTROL_FLAG_CMD_INVALID;
