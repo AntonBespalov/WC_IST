@@ -22,6 +22,7 @@ typedef struct {
   uint32_t write_calls;
   psram_ctx_t *driver_for_reentry;
   bool reentry_test_enable;
+  uint32_t reentry_task_id;
   psram_error_t reentry_result;
 } mock_qspi_t;
 
@@ -96,7 +97,7 @@ static qspi_port_status_t mock_qspi_write(void *low_level_ctx,
   if (mock->reentry_test_enable && (mock->driver_for_reentry != NULL))
   {
     uint8_t readback = 0u;
-    mock->reentry_result = psram_read(mock->driver_for_reentry, 200u, 0u, &readback, 1u);
+    mock->reentry_result = psram_read(mock->driver_for_reentry, mock->reentry_task_id, 0u, &readback, 1u);
     mock->reentry_test_enable = false;
   }
 
@@ -220,6 +221,30 @@ static void test_write_read_and_chunking(test_ctx_t *ctx)
   test_expect_u32(ctx, mock.read_calls, 3u, "read should be split into 3 chunks");
 }
 
+/**
+ * @brief Тест: после единичной ошибки состояние возвращается в READY.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_state_recovers_to_ready_after_single_error(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  uint8_t buffer[4] = {1u, 2u, 3u, 4u};
+  mock.fail_always_timeout = true;
+
+  test_expect_true(ctx,
+                   psram_write(&driver, 10u, 0u, buffer, sizeof(buffer)) == PSRAM_ERR_TIMEOUT,
+                   "single timeout should be reported");
+
+  psram_status_t status = {0};
+  (void)psram_get_status(&driver, &status);
+  test_expect_true(ctx, status.state == PSRAM_STATE_READY, "state should return to READY after single error");
+  test_expect_true(ctx, status.consecutive_errors == 1u, "consecutive_errors should be incremented");
+}
+
 static void test_degraded_after_repeated_errors(test_ctx_t *ctx)
 {
   psram_ctx_t driver;
@@ -256,12 +281,37 @@ static void test_lock_serialization_conflict(test_ctx_t *ctx)
   mock.driver_for_reentry = &driver;
   mock.reentry_test_enable = true;
   mock.reentry_result = PSRAM_ERR_OK;
+  mock.reentry_task_id = 200u;
 
   const psram_error_t write_result = psram_write(&driver, 100u, 0u, write_data, sizeof(write_data));
   test_expect_true(ctx, write_result == PSRAM_ERR_OK, "primary write should succeed");
   test_expect_true(ctx,
                    mock.reentry_result == PSRAM_ERR_LOCKED,
                    "reentrant access from another task should return LOCKED");
+}
+
+/**
+ * @brief Тест: повторный вход тем же task-id блокируется (нерекурсивный lock).
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_lock_serialization_same_task_conflict(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  uint8_t write_data[4] = {7u, 8u, 9u, 10u};
+  mock.driver_for_reentry = &driver;
+  mock.reentry_test_enable = true;
+  mock.reentry_task_id = 100u;
+  mock.reentry_result = PSRAM_ERR_OK;
+
+  const psram_error_t write_result = psram_write(&driver, 100u, 0u, write_data, sizeof(write_data));
+  test_expect_true(ctx, write_result == PSRAM_ERR_OK, "primary write should succeed");
+  test_expect_true(ctx,
+                   mock.reentry_result == PSRAM_ERR_LOCKED,
+                   "reentrant access from same task should return LOCKED");
 }
 
 static void test_self_test_ok(test_ctx_t *ctx)
@@ -283,8 +333,10 @@ int main(void)
     {"init_rejects_chunk_above_tcem_limit", test_init_rejects_chunk_above_tcem_limit},
     {"bounds_and_params", test_bounds_and_params},
     {"write_read_and_chunking", test_write_read_and_chunking},
+    {"state_recovers_to_ready_after_single_error", test_state_recovers_to_ready_after_single_error},
     {"degraded_after_repeated_errors", test_degraded_after_repeated_errors},
     {"lock_serialization_conflict", test_lock_serialization_conflict},
+    {"lock_serialization_same_task_conflict", test_lock_serialization_same_task_conflict},
     {"self_test_ok", test_self_test_ok}
   };
 

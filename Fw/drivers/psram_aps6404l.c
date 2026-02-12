@@ -81,7 +81,7 @@ static bool psram_is_range_valid(const psram_ctx_t *ctx, uint32_t address_start,
  */
 static psram_error_t psram_acquire_lock(psram_ctx_t *ctx, uint32_t requester_task_id)
 {
-  if (ctx->lock_active && (ctx->owner_task_id != requester_task_id))
+  if (ctx->lock_active)
   {
     return PSRAM_ERR_LOCKED;
   }
@@ -250,6 +250,29 @@ psram_error_t psram_init(psram_ctx_t *ctx,
   return PSRAM_ERR_OK;
 }
 
+/**
+ * @brief Завершить операцию и стабилизировать состояние драйвера после transfer.
+ * @param ctx Контекст драйвера.
+ * @param result Результат операции transfer.
+ * @return None.
+ */
+static void psram_finalize_transfer(psram_ctx_t *ctx, psram_error_t result)
+{
+  if (result == PSRAM_ERR_OK)
+  {
+    ctx->status.state = PSRAM_STATE_READY;
+    psram_reset_error_counters(ctx);
+    return;
+  }
+
+  psram_note_error(ctx, result);
+
+  if (ctx->status.state == PSRAM_STATE_BUSY)
+  {
+    ctx->status.state = PSRAM_STATE_READY;
+  }
+}
+
 psram_error_t psram_read(psram_ctx_t *ctx,
                         uint32_t requester_task_id,
                         uint32_t address_start,
@@ -290,15 +313,7 @@ psram_error_t psram_read(psram_ctx_t *ctx,
   ctx->status.state = PSRAM_STATE_BUSY;
   result = psram_transfer_chunked(ctx, address_start, buffer_dst, length_bytes, false);
 
-  if (result == PSRAM_ERR_OK)
-  {
-    ctx->status.state = PSRAM_STATE_READY;
-    psram_reset_error_counters(ctx);
-  }
-  else
-  {
-    psram_note_error(ctx, result);
-  }
+  psram_finalize_transfer(ctx, result);
 
   psram_release_lock(ctx, requester_task_id);
   return result;
@@ -344,15 +359,7 @@ psram_error_t psram_write(psram_ctx_t *ctx,
   ctx->status.state = PSRAM_STATE_BUSY;
   result = psram_transfer_chunked(ctx, address_start, (uint8_t *)buffer_src, length_bytes, true);
 
-  if (result == PSRAM_ERR_OK)
-  {
-    ctx->status.state = PSRAM_STATE_READY;
-    psram_reset_error_counters(ctx);
-  }
-  else
-  {
-    psram_note_error(ctx, result);
-  }
+  psram_finalize_transfer(ctx, result);
 
   psram_release_lock(ctx, requester_task_id);
   return result;
