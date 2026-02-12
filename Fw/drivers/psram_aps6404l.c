@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define PSRAM_SELF_TEST_SIZE_BYTES (16u)
+#define PSRAM_REQUIRE_PORT_IDLE_CALLBACK (1u)
 
 /**
  * @brief Сбросить диагностические счётчики ошибок.
@@ -13,6 +14,7 @@ static void psram_reset_error_counters(psram_ctx_t *ctx)
 {
   ctx->status.consecutive_errors = 0u;
   ctx->status.last_error = PSRAM_ERR_OK;
+  ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_NONE;
 }
 
 /**
@@ -59,6 +61,32 @@ static bool psram_is_cfg_valid(const psram_cfg_t *cfg)
 }
 
 /**
+ * @brief Прочитать текущую версию timing-конфигурации QSPI через callback порта.
+ * @param ctx Контекст драйвера.
+ * @return Текущая версия timing-конфигурации QSPI, [счётчик].
+ */
+static uint32_t psram_read_port_timing_epoch(const psram_ctx_t *ctx)
+{
+  return ctx->port.get_timing_epoch(ctx->port.low_level_ctx);
+}
+
+/**
+ * @brief Проверить idle-состояние порта QSPI перед переводом драйвера в READY.
+ * @param ctx Контекст драйвера.
+ * @retval true Порт idle или callback не задан.
+ * @retval false Порт занят незавершённой транзакцией.
+ */
+static bool psram_is_port_idle(const psram_ctx_t *ctx)
+{
+  if (ctx->port.is_idle == NULL)
+  {
+    return false;
+  }
+
+  return ctx->port.is_idle(ctx->port.low_level_ctx);
+}
+
+/**
  * @brief Проверить диапазон адреса и длины операции.
  * @param ctx Контекст драйвера.
  * @param address_start Адрес начала операции, [байт].
@@ -80,7 +108,7 @@ static bool psram_is_range_valid(const psram_ctx_t *ctx, uint32_t address_start,
  */
 static bool psram_is_timing_epoch_valid(const psram_ctx_t *ctx)
 {
-  return (ctx->timing_epoch_snapshot == ctx->port.timing_epoch);
+  return (ctx->timing_epoch_snapshot == psram_read_port_timing_epoch(ctx));
 }
 
 /**
@@ -166,6 +194,11 @@ static psram_error_t psram_transfer_chunked(psram_ctx_t *ctx,
                                  : remaining_bytes;
     const uint32_t chunk_address = address_start + (uint32_t)offset_bytes;
     uint8_t attempt = 0u;
+
+    if (!psram_is_timing_epoch_valid(ctx))
+    {
+      return PSRAM_ERR_TIMING_CHANGED;
+    }
     qspi_port_status_t port_status = QSPI_PORT_BUS;
 
     while (attempt < ctx->cfg.max_retries_per_chunk)
@@ -222,10 +255,18 @@ psram_error_t psram_init(psram_ctx_t *ctx,
   /* Шаг 3: инициализация low-level QSPI и перевод состояния в READY/FAULT. */
 
   // SAFETY: cfg.max_chunk_bytes ограничен tCEM-safe пределом BSP (CE# low pulse width).
-  if ((ctx == NULL) || (port == NULL) || (port->init == NULL) || (port->read == NULL) || (port->write == NULL))
+  if ((ctx == NULL) || (port == NULL) || (port->init == NULL) || (port->read == NULL)
+      || (port->write == NULL) || (port->get_timing_epoch == NULL))
   {
     return PSRAM_ERR_PARAM;
   }
+
+#if (PSRAM_REQUIRE_PORT_IDLE_CALLBACK == 1u)
+  if (port->is_idle == NULL)
+  {
+    return PSRAM_ERR_PARAM;
+  }
+#endif
 
   if (!psram_is_cfg_valid(cfg))
   {
@@ -241,12 +282,13 @@ psram_error_t psram_init(psram_ctx_t *ctx,
   ctx->port = *port;
   ctx->status.state = PSRAM_STATE_UNINIT;
   ctx->status.last_error = PSRAM_ERR_OK;
+  ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_NONE;
   ctx->status.consecutive_errors = 0u;
   ctx->status.total_read_transactions = 0u;
   ctx->status.total_write_transactions = 0u;
   ctx->lock_active = false;
   ctx->owner_task_id = 0u;
-  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
+  ctx->timing_epoch_snapshot = psram_read_port_timing_epoch(ctx);
 
   const qspi_port_status_t init_status = ctx->port.init(ctx->port.low_level_ctx);
   if (init_status != QSPI_PORT_OK)
@@ -257,7 +299,15 @@ psram_error_t psram_init(psram_ctx_t *ctx,
     return error;
   }
 
-  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
+  if (!psram_is_port_idle(ctx))
+  {
+    ctx->status.state = PSRAM_STATE_FAULT;
+    ctx->status.last_error = PSRAM_ERR_PORT_BUSY_RECOVER;
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_PORT_BUSY_RECOVER;
+    return PSRAM_ERR_PORT_BUSY_RECOVER;
+  }
+
+  ctx->timing_epoch_snapshot = psram_read_port_timing_epoch(ctx);
   ctx->status.state = PSRAM_STATE_READY;
   psram_reset_error_counters(ctx);
   return PSRAM_ERR_OK;
@@ -275,6 +325,14 @@ static void psram_finalize_transfer(psram_ctx_t *ctx, psram_error_t result)
   {
     ctx->status.state = PSRAM_STATE_READY;
     psram_reset_error_counters(ctx);
+    return;
+  }
+
+  if (result == PSRAM_ERR_TIMING_CHANGED)
+  {
+    psram_note_error(ctx, result);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
     return;
   }
 
@@ -309,14 +367,16 @@ psram_error_t psram_read(psram_ctx_t *ctx,
 
   if ((ctx->status.state == PSRAM_STATE_DEGRADED) || (ctx->status.state == PSRAM_STATE_FAULT))
   {
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_STATE;
     return PSRAM_ERR_NOT_READY;
   }
 
   if (!psram_is_timing_epoch_valid(ctx))
   {
-    psram_note_error(ctx, PSRAM_ERR_NOT_READY);
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
     ctx->status.state = PSRAM_STATE_DEGRADED;
-    return PSRAM_ERR_NOT_READY;
+    return PSRAM_ERR_TIMING_CHANGED;
   }
 
   if (!psram_is_range_valid(ctx, address_start, length_bytes))
@@ -328,6 +388,15 @@ psram_error_t psram_read(psram_ctx_t *ctx,
   if (result != PSRAM_ERR_OK)
   {
     return result;
+  }
+
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
+    psram_release_lock(ctx, requester_task_id);
+    return PSRAM_ERR_TIMING_CHANGED;
   }
 
   ctx->status.state = PSRAM_STATE_BUSY;
@@ -362,14 +431,16 @@ psram_error_t psram_write(psram_ctx_t *ctx,
 
   if ((ctx->status.state == PSRAM_STATE_DEGRADED) || (ctx->status.state == PSRAM_STATE_FAULT))
   {
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_STATE;
     return PSRAM_ERR_NOT_READY;
   }
 
   if (!psram_is_timing_epoch_valid(ctx))
   {
-    psram_note_error(ctx, PSRAM_ERR_NOT_READY);
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
     ctx->status.state = PSRAM_STATE_DEGRADED;
-    return PSRAM_ERR_NOT_READY;
+    return PSRAM_ERR_TIMING_CHANGED;
   }
 
   if (!psram_is_range_valid(ctx, address_start, length_bytes))
@@ -381,6 +452,15 @@ psram_error_t psram_write(psram_ctx_t *ctx,
   if (result != PSRAM_ERR_OK)
   {
     return result;
+  }
+
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
+    psram_release_lock(ctx, requester_task_id);
+    return PSRAM_ERR_TIMING_CHANGED;
   }
 
   ctx->status.state = PSRAM_STATE_BUSY;
@@ -482,7 +562,16 @@ psram_error_t psram_recover(psram_ctx_t *ctx, uint32_t requester_task_id)
     return result;
   }
 
-  ctx->timing_epoch_snapshot = ctx->port.timing_epoch;
+  if (!psram_is_port_idle(ctx))
+  {
+    ctx->status.state = PSRAM_STATE_FAULT;
+    ctx->status.last_error = PSRAM_ERR_PORT_BUSY_RECOVER;
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_PORT_BUSY_RECOVER;
+    psram_release_lock(ctx, requester_task_id);
+    return PSRAM_ERR_PORT_BUSY_RECOVER;
+  }
+
+  ctx->timing_epoch_snapshot = psram_read_port_timing_epoch(ctx);
   ctx->status.state = PSRAM_STATE_READY;
   psram_reset_error_counters(ctx);
   psram_release_lock(ctx, requester_task_id);
