@@ -68,6 +68,8 @@ typedef qspi_port_status_t (*qspi_port_write_fn_t)(void *low_level_ctx,
  * @brief Сигнатура callback чтения версии timing-конфигурации QSPI.
  * @param low_level_ctx Указатель на контекст порта/драйвера HAL.
  * @return Текущая версия timing-конфигурации QSPI, [счётчик].
+ * @warning Реализация MUST обеспечивать атомарное чтение относительно контекста,
+ *          который выполняет runtime-переконфигурацию QSPI timing.
  */
 typedef uint32_t (*qspi_port_get_timing_epoch_fn_t)(void *low_level_ctx);
 
@@ -76,6 +78,7 @@ typedef uint32_t (*qspi_port_get_timing_epoch_fn_t)(void *low_level_ctx);
  * @param low_level_ctx Указатель на контекст порта/драйвера HAL.
  * @retval true Порт idle, безопасно переводить драйвер в READY.
  * @retval false Есть незавершённые транзакции/переконфигурация.
+ * @note Для safety-профиля callback должен быть задан (не NULL).
  */
 typedef bool (*qspi_port_is_idle_fn_t)(void *low_level_ctx);
 

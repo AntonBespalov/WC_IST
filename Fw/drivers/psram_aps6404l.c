@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define PSRAM_SELF_TEST_SIZE_BYTES (16u)
+#define PSRAM_REQUIRE_PORT_IDLE_CALLBACK (1u)
 
 /**
  * @brief Сбросить диагностические счётчики ошибок.
@@ -79,7 +80,7 @@ static bool psram_is_port_idle(const psram_ctx_t *ctx)
 {
   if (ctx->port.is_idle == NULL)
   {
-    return true;
+    return false;
   }
 
   return ctx->port.is_idle(ctx->port.low_level_ctx);
@@ -193,6 +194,11 @@ static psram_error_t psram_transfer_chunked(psram_ctx_t *ctx,
                                  : remaining_bytes;
     const uint32_t chunk_address = address_start + (uint32_t)offset_bytes;
     uint8_t attempt = 0u;
+
+    if (!psram_is_timing_epoch_valid(ctx))
+    {
+      return PSRAM_ERR_TIMING_CHANGED;
+    }
     qspi_port_status_t port_status = QSPI_PORT_BUS;
 
     while (attempt < ctx->cfg.max_retries_per_chunk)
@@ -255,6 +261,13 @@ psram_error_t psram_init(psram_ctx_t *ctx,
     return PSRAM_ERR_PARAM;
   }
 
+#if (PSRAM_REQUIRE_PORT_IDLE_CALLBACK == 1u)
+  if (port->is_idle == NULL)
+  {
+    return PSRAM_ERR_PARAM;
+  }
+#endif
+
   if (!psram_is_cfg_valid(cfg))
   {
     return PSRAM_ERR_PARAM;
@@ -286,6 +299,14 @@ psram_error_t psram_init(psram_ctx_t *ctx,
     return error;
   }
 
+  if (!psram_is_port_idle(ctx))
+  {
+    ctx->status.state = PSRAM_STATE_FAULT;
+    ctx->status.last_error = PSRAM_ERR_PORT_BUSY_RECOVER;
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_PORT_BUSY_RECOVER;
+    return PSRAM_ERR_PORT_BUSY_RECOVER;
+  }
+
   ctx->timing_epoch_snapshot = psram_read_port_timing_epoch(ctx);
   ctx->status.state = PSRAM_STATE_READY;
   psram_reset_error_counters(ctx);
@@ -304,6 +325,14 @@ static void psram_finalize_transfer(psram_ctx_t *ctx, psram_error_t result)
   {
     ctx->status.state = PSRAM_STATE_READY;
     psram_reset_error_counters(ctx);
+    return;
+  }
+
+  if (result == PSRAM_ERR_TIMING_CHANGED)
+  {
+    psram_note_error(ctx, result);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
     return;
   }
 
@@ -361,6 +390,15 @@ psram_error_t psram_read(psram_ctx_t *ctx,
     return result;
   }
 
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
+    psram_release_lock(ctx, requester_task_id);
+    return PSRAM_ERR_TIMING_CHANGED;
+  }
+
   ctx->status.state = PSRAM_STATE_BUSY;
   result = psram_transfer_chunked(ctx, address_start, buffer_dst, length_bytes, false);
 
@@ -414,6 +452,15 @@ psram_error_t psram_write(psram_ctx_t *ctx,
   if (result != PSRAM_ERR_OK)
   {
     return result;
+  }
+
+  if (!psram_is_timing_epoch_valid(ctx))
+  {
+    psram_note_error(ctx, PSRAM_ERR_TIMING_CHANGED);
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_TIMING_CHANGED;
+    ctx->status.state = PSRAM_STATE_DEGRADED;
+    psram_release_lock(ctx, requester_task_id);
+    return PSRAM_ERR_TIMING_CHANGED;
   }
 
   ctx->status.state = PSRAM_STATE_BUSY;
@@ -518,9 +565,10 @@ psram_error_t psram_recover(psram_ctx_t *ctx, uint32_t requester_task_id)
   if (!psram_is_port_idle(ctx))
   {
     ctx->status.state = PSRAM_STATE_FAULT;
-    ctx->status.last_error = PSRAM_ERR_BUS;
+    ctx->status.last_error = PSRAM_ERR_PORT_BUSY_RECOVER;
+    ctx->status.last_not_ready_reason = PSRAM_NOT_READY_REASON_PORT_BUSY_RECOVER;
     psram_release_lock(ctx, requester_task_id);
-    return PSRAM_ERR_BUS;
+    return PSRAM_ERR_PORT_BUSY_RECOVER;
   }
 
   ctx->timing_epoch_snapshot = psram_read_port_timing_epoch(ctx);

@@ -114,3 +114,16 @@
 ## Краткий вывод
 
 Патч двигает дизайн в правильную сторону (явный epoch callback, reason-code, idle-check в recover), но остаются критичные зоны доказательства для RT/safety: TOCTOU вокруг epoch, strictness idle-контракта, mid-transfer epoch-switch и формальный контракт приоритета ошибок.
+
+## PR-2: статус закрытия рисков (code/test proof)
+
+- Частично закрыто кодом PR-1: риски 1, 3, 4, 5 (TOCTOU смягчён re-check в lock/chunk-loop; strict `is_idle`; idle-barrier в init; отдельный recover error code).
+- Закрыто тестами PR-1/PR-2: проверка non-idle recover reason; mid-transfer epoch change; deterministic priority в конфликте lock/timing; init reject без `is_idle` callback.
+- Остаётся открытым и требует on-target proof: пункты измерений 1..10 (особенно latency/jitter и влияние на 250 мкс цикл).
+
+### Минимальный acceptance gate перед merge в safety-ветку
+
+1) Host unit: все L1 тесты зелёные на CI.
+2) On-target: выполнены измерения 1,2,3,7,8 из списка выше.
+3) Fault-injection: минимум 5 сценариев (п.10) с приложением логов/осциллограмм.
+4) Подтверждён отсутствие регрессии по recover/diagnostics контракту в телеметрии.
