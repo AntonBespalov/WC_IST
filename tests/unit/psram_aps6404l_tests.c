@@ -21,6 +21,7 @@ typedef struct {
   uint32_t read_calls;
   uint32_t write_calls;
   uint32_t timing_epoch;
+  bool is_idle;
   psram_ctx_t *driver_for_reentry;
   bool reentry_test_enable;
   uint32_t reentry_task_id;
@@ -56,6 +57,29 @@ static qspi_port_status_t mock_qspi_init(void *low_level_ctx)
   mock->fail_next_timeout = false;
   mock->fail_next_bus = false;
   return QSPI_PORT_OK;
+}
+
+/**
+ * @brief Получить текущую версию timing-конфигурации mock QSPI.
+ * @param low_level_ctx Контекст mock.
+ * @return Версия timing-конфигурации QSPI, [счётчик].
+ */
+static uint32_t mock_qspi_get_timing_epoch(void *low_level_ctx)
+{
+  mock_qspi_t *mock = (mock_qspi_t *)low_level_ctx;
+  return mock->timing_epoch;
+}
+
+/**
+ * @brief Проверить idle-состояние mock QSPI.
+ * @param low_level_ctx Контекст mock.
+ * @retval true Mock-порт idle.
+ * @retval false Mock-порт занят.
+ */
+static bool mock_qspi_is_idle(void *low_level_ctx)
+{
+  mock_qspi_t *mock = (mock_qspi_t *)low_level_ctx;
+  return mock->is_idle;
 }
 
 static qspi_port_status_t mock_qspi_read(void *low_level_ctx,
@@ -126,6 +150,7 @@ static qspi_port_status_t mock_qspi_write(void *low_level_ctx,
 static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
 {
   mock->timing_epoch = 1u;
+  mock->is_idle = true;
 
   const psram_cfg_t cfg = {
     .memory_size_bytes = MOCK_PSRAM_SIZE_BYTES,
@@ -138,8 +163,9 @@ static void test_make_driver(psram_ctx_t *driver, mock_qspi_t *mock)
     .init = mock_qspi_init,
     .read = mock_qspi_read,
     .write = mock_qspi_write,
+    .get_timing_epoch = mock_qspi_get_timing_epoch,
+    .is_idle = mock_qspi_is_idle,
     .tcem_safe_max_chunk_bytes = 16u,
-    .timing_epoch = 1u
   };
 
   const psram_error_t init_result = psram_init(driver, &cfg, &port);
@@ -171,8 +197,9 @@ static void test_init_rejects_chunk_above_tcem_limit(test_ctx_t *ctx)
     .init = mock_qspi_init,
     .read = mock_qspi_read,
     .write = mock_qspi_write,
+    .get_timing_epoch = mock_qspi_get_timing_epoch,
+    .is_idle = mock_qspi_is_idle,
     .tcem_safe_max_chunk_bytes = 16u,
-    .timing_epoch = 1u
   };
 
   test_expect_true(ctx,
@@ -261,15 +288,18 @@ static void test_timing_epoch_mismatch_degrades_driver(test_ctx_t *ctx)
   mock_qspi_t mock = {0};
   test_make_driver(&driver, &mock);
 
-  driver.port.timing_epoch += 1u;
+  mock.timing_epoch += 1u;
 
   uint8_t buffer[4] = {0u};
   const psram_error_t read_result = psram_read(&driver, 5u, 0u, buffer, sizeof(buffer));
-  test_expect_true(ctx, read_result == PSRAM_ERR_NOT_READY, "timing mismatch should return NOT_READY");
+  test_expect_true(ctx, read_result == PSRAM_ERR_TIMING_CHANGED, "timing mismatch should return TIMING_CHANGED");
 
   psram_status_t status = {0};
   (void)psram_get_status(&driver, &status);
   test_expect_true(ctx, status.state == PSRAM_STATE_DEGRADED, "timing mismatch should force DEGRADED");
+  test_expect_true(ctx,
+                   status.last_not_ready_reason == PSRAM_NOT_READY_REASON_TIMING_CHANGED,
+                   "timing mismatch should set not-ready reason to TIMING_CHANGED");
 }
 
 static void test_degraded_after_repeated_errors(test_ctx_t *ctx)
@@ -352,9 +382,11 @@ static void test_recover_after_timing_epoch_change(test_ctx_t *ctx)
   mock_qspi_t mock = {0};
   test_make_driver(&driver, &mock);
 
-  driver.port.timing_epoch += 1u;
+  mock.timing_epoch += 1u;
   uint8_t buffer[2] = {1u, 2u};
-  (void)psram_write(&driver, 11u, 0u, buffer, sizeof(buffer));
+  test_expect_true(ctx,
+                   psram_write(&driver, 11u, 0u, buffer, sizeof(buffer)) == PSRAM_ERR_TIMING_CHANGED,
+                   "write should fail with TIMING_CHANGED before recover");
 
   test_expect_true(ctx,
                    psram_recover(&driver, 11u) == PSRAM_ERR_OK,
@@ -363,6 +395,59 @@ static void test_recover_after_timing_epoch_change(test_ctx_t *ctx)
   psram_status_t status = {0};
   (void)psram_get_status(&driver, &status);
   test_expect_true(ctx, status.state == PSRAM_STATE_READY, "state should be READY after recover");
+
+  test_expect_true(ctx,
+                   psram_write(&driver, 11u, 3u, buffer, sizeof(buffer)) == PSRAM_ERR_OK,
+                   "write should succeed after recover");
+  uint8_t readback[2] = {0u};
+  test_expect_true(ctx,
+                   psram_read(&driver, 11u, 3u, readback, sizeof(readback)) == PSRAM_ERR_OK,
+                   "read should succeed after recover");
+  test_expect_true(ctx,
+                   memcmp(buffer, readback, sizeof(buffer)) == 0,
+                   "readback should match after recover");
+}
+
+/**
+ * @brief Тест: recover завершаетcя BUS, если QSPI-порт не idle после init.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_recover_fails_when_port_not_idle(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  mock.timing_epoch += 1u;
+  uint8_t buffer[2] = {3u, 4u};
+  (void)psram_write(&driver, 7u, 0u, buffer, sizeof(buffer));
+
+  mock.is_idle = false;
+  test_expect_true(ctx,
+                   psram_recover(&driver, 7u) == PSRAM_ERR_BUS,
+                   "recover should fail with BUS if port is not idle");
+
+  psram_status_t status = {0};
+  (void)psram_get_status(&driver, &status);
+  test_expect_true(ctx, status.state == PSRAM_STATE_FAULT, "state should be FAULT when recover sees non-idle port");
+}
+
+/**
+ * @brief Тест: self-test блокируется при mismatch timing_epoch.
+ * @param ctx Контекст тестов.
+ * @return None.
+ */
+static void test_self_test_rejects_timing_mismatch(test_ctx_t *ctx)
+{
+  psram_ctx_t driver;
+  mock_qspi_t mock = {0};
+  test_make_driver(&driver, &mock);
+
+  mock.timing_epoch += 1u;
+  test_expect_true(ctx,
+                   psram_self_test(&driver, 3u) == PSRAM_ERR_TIMING_CHANGED,
+                   "self-test should fail with TIMING_CHANGED when epoch mismatches");
 }
 
 static void test_self_test_ok(test_ctx_t *ctx)
@@ -390,7 +475,9 @@ int main(void)
     {"lock_serialization_conflict", test_lock_serialization_conflict},
     {"lock_serialization_same_task_conflict", test_lock_serialization_same_task_conflict},
     {"recover_after_timing_epoch_change", test_recover_after_timing_epoch_change},
-    {"self_test_ok", test_self_test_ok}
+    {"recover_fails_when_port_not_idle", test_recover_fails_when_port_not_idle},
+    {"self_test_ok", test_self_test_ok},
+    {"self_test_rejects_timing_mismatch", test_self_test_rejects_timing_mismatch}
   };
 
   test_ctx_t ctx = {0};

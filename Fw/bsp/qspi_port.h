@@ -2,6 +2,7 @@
 #define QSPI_PORT_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -63,6 +64,21 @@ typedef qspi_port_status_t (*qspi_port_write_fn_t)(void *low_level_ctx,
                                                    const uint8_t *buffer_src,
                                                    size_t length_bytes);
 
+/**
+ * @brief Сигнатура callback чтения версии timing-конфигурации QSPI.
+ * @param low_level_ctx Указатель на контекст порта/драйвера HAL.
+ * @return Текущая версия timing-конфигурации QSPI, [счётчик].
+ */
+typedef uint32_t (*qspi_port_get_timing_epoch_fn_t)(void *low_level_ctx);
+
+/**
+ * @brief Сигнатура callback проверки idle-состояния контроллера QSPI.
+ * @param low_level_ctx Указатель на контекст порта/драйвера HAL.
+ * @retval true Порт idle, безопасно переводить драйвер в READY.
+ * @retval false Есть незавершённые транзакции/переконфигурация.
+ */
+typedef bool (*qspi_port_is_idle_fn_t)(void *low_level_ctx);
+
 
 /**
  * @brief Ограничение payload одной транзакции для соблюдения tCEM.
@@ -80,8 +96,9 @@ typedef struct {
   qspi_port_init_fn_t init;          /**< Инициализация контроллера/микросхемы. */
   qspi_port_read_fn_t read;          /**< Чтение из PSRAM. */
   qspi_port_write_fn_t write;        /**< Запись в PSRAM. */
+  qspi_port_get_timing_epoch_fn_t get_timing_epoch; /**< Получение актуальной версии timing-конфигурации QSPI. */
+  qspi_port_is_idle_fn_t is_idle;    /**< Проверка idle-состояния порта (может быть NULL, тогда считается idle). */
   size_t tcem_safe_max_chunk_bytes;  /**< Максимальный payload chunk при CE# low <= tCEM, [байт]. */
-  uint32_t timing_epoch;              /**< Версия timing-конфигурации QSPI (инкремент при смене SCK/prescaler/mode), [счётчик]. */
 } qspi_port_api_t;
 
 #ifdef __cplusplus
