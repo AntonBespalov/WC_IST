@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define AD7380_CS_Pin GPIO_PIN_3
+#define AD7380_CS_GPIO_Port GPIOE
 #define EXTWDG_OUT_Pin GPIO_PIN_2
 #define EXTWDG_OUT_GPIO_Port GPIOC
 #define COMX_IRQ_Pin GPIO_PIN_0
@@ -83,8 +85,6 @@ void Error_Handler(void);
 #define AD7606_BUSY2_GPIO_Port GPIOB
 #define AD7606_BUSY1_Pin GPIO_PIN_5
 #define AD7606_BUSY1_GPIO_Port GPIOB
-#define AD7380_CS_Pin GPIO_PIN_9
-#define AD7380_CS_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
