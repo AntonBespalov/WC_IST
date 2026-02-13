@@ -3,7 +3,7 @@
 Все документы проекта хранятся и актуализируются **только** в `docs/`.
 Задача этого файла — быстро находить нужный документ и не таскать всё в контекст.
 
-Статус индекса: обновлено на **2026-02-11**.
+Статус индекса: обновлено на **2026-02-13**.
 
 ---
 
@@ -41,6 +41,12 @@
 - `docs/meta/LLM_SKILLS_GUIDE_RU.md` — принципы Ground Truth, как использовать docs/skills с Codex.
 - `docs/HOW_TO_USE_RU.md` — mind map + памятка (onboarding): как пользоваться docs/ + `.codex/skills/` в проекте.
 - `docs/ENGINEERING_CONTRACT.md` — общий инженерный контракт разработки (defensive design, safety/RT, proof).
+
+---
+
+## Datasheets / Reference
+- `docs/datasheets/README.md` — как устроен каталог даташитов и правила его поддержки.
+- `docs/datasheets/` — даташиты на применяемые микросхемы и модули (см. `docs/PROJECT_CONTEXT.md` / раздел 1 и `docs/GLOSSARY.md`).
 
 ---
 
