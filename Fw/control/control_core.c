@@ -179,7 +179,7 @@ void control_fast_step(control_ctx_t *ctx, const control_meas_t *meas, bool allo
     flags |= CONTROL_FLAG_NUM_INVALID;
   }
 
-  const bool allow_cmd = (allow && cmd_snapshot_ok && cmd_snapshot.cmd_valid && cmd_snapshot.enable_cmd);
+  const bool allow_cmd = (allow && cmd_snapshot.cmd_valid && cmd_snapshot.enable_cmd);
 
   if (!allow_cmd)
   {
