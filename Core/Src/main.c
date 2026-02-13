@@ -238,7 +238,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -602,7 +602,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(AD7606_CONVST_GPIO_Port, AD7606_CONVST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, AD7380_CS2_Pin|AD7380_CS1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(AD7380_CS_GPIO_Port, AD7380_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : EXTWDG_OUT_Pin SKYPER_ERR_IN_Pin */
   GPIO_InitStruct.Pin = EXTWDG_OUT_Pin|SKYPER_ERR_IN_Pin;
@@ -650,12 +650,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : AD7380_CS2_Pin AD7380_CS1_Pin */
-  GPIO_InitStruct.Pin = AD7380_CS2_Pin|AD7380_CS1_Pin;
+  /*Configure GPIO pin : AD7380_CS_Pin */
+  GPIO_InitStruct.Pin = AD7380_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(AD7380_CS_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

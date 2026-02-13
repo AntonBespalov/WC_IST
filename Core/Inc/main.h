@@ -83,10 +83,8 @@ void Error_Handler(void);
 #define AD7606_BUSY2_GPIO_Port GPIOB
 #define AD7606_BUSY1_Pin GPIO_PIN_5
 #define AD7606_BUSY1_GPIO_Port GPIOB
-#define AD7380_CS2_Pin GPIO_PIN_6
-#define AD7380_CS2_GPIO_Port GPIOB
-#define AD7380_CS1_Pin GPIO_PIN_7
-#define AD7380_CS1_GPIO_Port GPIOB
+#define AD7380_CS_Pin GPIO_PIN_9
+#define AD7380_CS_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
