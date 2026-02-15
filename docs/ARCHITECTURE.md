@@ -94,6 +94,12 @@
 - `asserts` — политика assert/ошибок (в т.ч. production-safe)
 - `settings_store` — хранение настроек/калибровок (version + CRC + defaults) с инвариантом: запись во Flash **только** в `IDLE` (PWM OFF), без влияния на PWM-домен (см. `docs/PROJECT_CONTEXT.md` / раздел 5)
 
+### 2.4 Logging (Fw/logging)
+- Fast домен: snapshot → SPSC publish.
+- Slow домен: pack → optional CRC → Record → SRAM capture.
+- Readout: chunk‑чтение для PC‑сервиса.
+- Подробности: `docs/logging/LOGGING_GUIDE.md`.
+
 ---
 
 ## 3) Потоки выполнения и контуры времени

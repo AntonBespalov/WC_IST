@@ -28,6 +28,11 @@
 
 ---
 
+## Logging / Observability
+- `docs/logging/LOGGING_GUIDE.md` — практический гайд по Fw/logging (формат, интеграция, pitfalls).
+
+---
+
 ## Верификация / Тестирование
 - `docs/verification/MFDC_Master_Document_RU.md` — master-архитектура V&V (пирамиды тестов, SIL/HIL, критерии выхода).
 - `docs/verification/MFDC_Verification_Plan_RU.md` — formal verification plan (критерии PASS/FAIL и уровни).

@@ -31,6 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "logging_platform_stm32g4.h"
 
 /* USER CODE END Includes */
 
