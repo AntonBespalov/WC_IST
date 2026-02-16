@@ -3,7 +3,7 @@
 Статус: draft  
 Дата: 2026-02-12  
 Владелец: TBD  
-Связано: docs/decisions/ADR-20260211-observability-trace-scope-and-service-enable.md, docs/PROJECT_CONTEXT.md, docs/design-notes/DN-008_AD7380_Sampling_and_Timing_Sync.md, docs/design-notes/DN-005_QSPI_PSRAM_Oscilloscope_Buffer.md, docs/protocols/PCCOM4.02_PROJECT.md  
+Связано: docs/decisions/ADR-005_Observability_Trace_Scope_and_Service_Enable.md, docs/PROJECT_CONTEXT.md, docs/design-notes/DN-008_AD7380_Sampling_and_Timing_Sync.md, docs/design-notes/DN-005_QSPI_PSRAM_Oscilloscope_Buffer.md, docs/protocols/PCCOM4.02_PROJECT.md  
 
 ---
 

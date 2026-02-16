@@ -1,9 +1,9 @@
-# ADR-TEMPLATE — Architecture Decision Record (шаблон)
+# ADR-004 — Интерфейс с ТК: EtherCAT (COMX↔FMC) + USB-UART PDO emu
 
 Статус: accepted  
 Дата: 2026-02-10  
 Владелец: Bespalov  
-Связано: `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md`, TBD (issue/PR/commit)  
+Связано: `docs/decisions/ADR-003_TK_EtherCAT_PDO_Emu_Over_UDP_Batching.md`, TBD (issue/PR/commit)  
 
 ---
 
@@ -130,5 +130,5 @@
   - Определить механизм “атомарного” чтения process image через FMC (seq-before/seq-after, снапшот в буфер).
   - Обновить/добавить проектный профиль для PCcom4 по UART для `TkPdo.Emu.*` (ссылки и точные форматы брать из ADR 2026-02-09; транспорт поменять на UART, убрать UDP batching).
   - План измерений таймингов (на железе) и набор fault-injection сценариев для приёмки решения.
-  - Актуализировать `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md`: оставить “идею/форматы `TkPdo.Emu.*`”, убрать привязку к UDP/Ethernet, зафиксировать транспорт как USB-UART (PCcom4 stream).
+  - Актуализировать `docs/decisions/ADR-003_TK_EtherCAT_PDO_Emu_Over_UDP_Batching.md`: оставить “идею/форматы `TkPdo.Emu.*`”, убрать привязку к UDP/Ethernet, зафиксировать транспорт как USB-UART (PCcom4 stream).
 - Links: PR/commit/issue

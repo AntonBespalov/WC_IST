@@ -17,7 +17,7 @@ STM32CubeIDE: при добавлении новых папок с кодом о
 - Внешний супервизор: CBM706T (FAULT/RESET роли разделены)
 - ШИМ-выходы TIM1 буферизуются через CD4049UBDR
 - USB-UART к ПК: FT232H (PCcom4)
-- EtherCAT к ТК (целевой интерфейс): COMX 100CA-RE ↔ FMC (см. `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`)
+- EtherCAT к ТК (целевой интерфейс): COMX 100CA-RE ↔ FMC (см. `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`)
 
 ## Тайминги
 - Команды ТК приходят с периодом **250 мкс (4 кГц)**; источник отвечает статусом/измерениями с тем же периодом.

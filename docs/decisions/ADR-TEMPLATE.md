@@ -1,4 +1,4 @@
-# ADR-YYYYMMDD-<slug> — <title> (шаблон ADR)
+# ADR-XXX_<short_name> — <title> (шаблон ADR)
 
 Статус: draft  
 Дата: YYYY-MM-DD  

@@ -7,6 +7,8 @@
 
 Шаблон: `docs/decisions/ADR-TEMPLATE.md`.
 
+Формат имени файла: `ADR-XXX_<short_name>.md` (как у `docs/design-notes/DN-XXX_<short_name>.md`).
+
 ## /obsolete
 Папка `docs/decisions/obsolete/` — для устаревших ADR: решения, которые больше неактуальны, заменены новыми ADR/Design Notes или признаны незначимыми для текущей системы.
 

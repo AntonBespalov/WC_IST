@@ -1,4 +1,4 @@
-﻿# ADR-20260211-observability-trace-scope-and-service-enable — Наблюдаемость (Trace/Scope) с безопасной буферизацией и включением сервиса по PCcom4
+# ADR-005 — Наблюдаемость (Trace/Scope) с безопасной буферизацией и включением сервиса по PCcom4
 
 Статус: draft  
 Дата: 2026-02-11  
@@ -12,7 +12,7 @@
 - Система имеет разные временные домены (fast PWM без RTOS и slow 1 мс в FreeRTOS; см. `docs/PROJECT_CONTEXT.md`): данные должны быть коррелируемы по времени между доменами.
 - Ограничения (инварианты), которые нельзя нарушать:
   - fast-домен (PWM) должен оставаться детерминированным: без блокировок, без тяжёлой сериализации, без обращения к USB-UART/PCcom4 и без обращения к внешней памяти QSPI из fast/ISR (см. также `docs/design-notes/DN-004_MFDC_Control_Core.md` и `docs/design-notes/DN-005_QSPI_PSRAM_Oscilloscope_Buffer.md`).
-  - наблюдаемость не участвует в shutdown-path силовой части: аппаратные защиты (BKIN/DRV_EN/INH и т.п.) остаются независимыми (см. `docs/PROJECT_CONTEXT.md` / safety и `docs/decisions/ADR-20260209-fault-chains-and-pins.md`).
+  - наблюдаемость не участвует в shutdown-path силовой части: аппаратные защиты (BKIN/DRV_EN/INH и т.п.) остаются независимыми (см. `docs/PROJECT_CONTEXT.md` / safety и `docs/decisions/ADR-001_Fault_Chains_and_Pins.md`).
   - по умолчанию штатная работа не должна включать сервисный обмен с ПК и не должна выполнять логирование/осциллографирование; обмен идёт только с ТК по EtherCAT (протокол см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`).
 - Высокочастотный пример: AD7380 до 400 кГц (период 2.5 мкс), максимум 2 канала. Требуемый режим: окна pre 5–10 мс и post 100–200 мс. Дополнительно присутствуют более медленные каналы (например, AD7606).
 - Сервисный интерфейс “плата ↔ ПК”: USB-UART через FT232H с протоколом PCcom4 (см. `docs/PROJECT_CONTEXT.md` и `docs/protocols/PCCOM4.02.md`, профиль проекта `docs/protocols/PCCOM4.02_PROJECT.md`).

@@ -2,7 +2,7 @@
 Статус: draft  
 Дата: 2026-02-10  
 Владелец: TBD  
-Связано: `docs/protocols/PCCOM4.02.md`, `docs/protocols/PCCOM4.02_PROJECT.md`, `docs/TEST_PLAN.md` / 3.1, `docs/ARCHITECTURE.md` / protocol_core, `docs/decisions/ADR-20260209-tk-ethercat-pdo-emu-over-udp-batching.md`, `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`
+Связано: `docs/protocols/PCCOM4.02.md`, `docs/protocols/PCCOM4.02_PROJECT.md`, `docs/TEST_PLAN.md` / 3.1, `docs/ARCHITECTURE.md` / protocol_core, `docs/decisions/ADR-003_TK_EtherCAT_PDO_Emu_Over_UDP_Batching.md`, `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`
 
 ---
 

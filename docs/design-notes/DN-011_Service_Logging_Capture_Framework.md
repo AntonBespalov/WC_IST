@@ -3,7 +3,7 @@
 Статус: draft  
 Дата: 2026-02-14  
 Владелец: Антон  
-Связано: `docs/ARCHITECTURE.md`, `docs/PROJECT_CONTEXT.md`, `docs/protocols/PCCOM4.02.md`, `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`  
+Связано: `docs/ARCHITECTURE.md`, `docs/PROJECT_CONTEXT.md`, `docs/protocols/PCCOM4.02.md`, `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`  
 Практическая интеграция и порядок вызовов: `docs/logging/LOGGING_GUIDE.md`  
 
 ---
