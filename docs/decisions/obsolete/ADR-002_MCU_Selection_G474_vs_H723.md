@@ -1,6 +1,9 @@
 # ADR-002 — Выбор MCU: STM32G474 vs STM32H723
 
-Статус: draft  
+> OBSOLETE (2026-02-16): STM32H723 больше не рассматривается для реализации в этом проекте.  
+> Актуальная платформа проекта: `docs/PROJECT_CONTEXT.md`.
+
+Статус: obsolete  
 Дата: 2026-02-09  
 Владелец: Bespalov  
 Связано: TBD (issue/PR/commit/links)  
