@@ -3,6 +3,8 @@
 Этот файл — единый источник правды о проекте.  
 Если меняются железо, тайминги, политика аварий или интерфейсы — обновляй этот файл вместе с кодом/схемой (в одном PR).
 
+Важно: содержимое папок `obsolete/` в репозитории (например `docs/**/obsolete/`) — архив и **не** является источником требований/контекста для разработки.
+
 Синхронизация: основные факты ниже приведены в соответствие с каноническими документами `docs/` (см. `docs/DOCS_INDEX.md`) по состоянию на **2026-02-13**.
 
 ---
@@ -89,7 +91,7 @@
 ---
 
 ## 5) Интерфейсы и обмен
-- Основной интерфейс с ТК: **EtherCAT PDO** через **COMX 100CA-RE ↔ FMC** (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`, `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`)
+- Основной интерфейс с ТК: **EtherCAT PDO** через **COMX 100CA-RE ↔ FMC** (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`, `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`)
 - Legacy/fallback (если включён): **CAN FD** профиль (см. `docs/protocols/PROTOCOL_TK.md`)
 - Формат обмена:
   - Команда: `I_ref_cmd`, `enable`, `seq` (и опциональные лимиты)

@@ -3,7 +3,7 @@
 Статус: draft  
 Дата: 2026-02-13  
 Владелец: TBD  
-Связано: `docs/PROJECT_CONTEXT.md` (тайминги/PWM/измерения), `docs/decisions/ADR-20260211-observability-trace-scope-and-service-enable.md` (наблюдаемость), `docs/decisions/ADR-20260213-ad7380-tim3-dma-sampling.md` (семплирование AD7380), `docs/design-notes/DN-005_QSPI_PSRAM_Oscilloscope_Buffer.md` (буфер осциллографа)  
+Связано: `docs/PROJECT_CONTEXT.md` (тайминги/PWM/измерения), `docs/decisions/ADR-005_Observability_Trace_Scope_and_Service_Enable.md` (наблюдаемость), `docs/decisions/ADR-006_AD7380_TIM3_DMA_Sampling.md` (семплирование AD7380), `docs/design-notes/DN-005_QSPI_PSRAM_Oscilloscope_Buffer.md` (буфер осциллографа)  
 
 ---
 
@@ -24,21 +24,21 @@
 - Не описывать полностью алгоритмы управления/защит (это в профильных DN/ADR по control/safety).
 
 ## 3) Принятые решения (из ADR) — база
-Источник: `docs/decisions/ADR-20260211-observability-trace-scope-and-service-enable.md`.
+Источник: `docs/decisions/ADR-005_Observability_Trace_Scope_and_Service_Enable.md`.
 
 - `timestamp_us`: монотонная timebase в микросекундах (u32, wrap-around допустим) от отдельного free-running 32-бит таймера (TIM2/TIM5) с частотой 1 МГц.
 - TIM1: режим center-aligned; `TIM1.RCR=1` для Update/UEV 1 раз на полный PWM-цикл (up+down).
 - `fast_seq`: номер периода PWM, формируемый аппаратно как счётчик Update/UEV от `TIM1 TRGO=Update` (не через инкремент в ISR).
 - (Опционально) `pwm_phase_ticks`: `TIM1.CNT` + направление (DIR) для фазовой привязки “внутри периода”, если потребуется.
 
-## 4) Схема выборок AD7380 (по ADR-20260213 — TIM3 PWM(CS) + TIM3_UP→DMA→SPI)
-Ниже — схема выборок **как источник правды по механике семплирования** (см. `docs/decisions/ADR-20260213-ad7380-tim3-dma-sampling.md`), согласованная с ограничениями RT/safety из ADR по наблюдаемости (в fast/ISR только O(1) работа в SRAM; никакого UART/QSPI). Схема обеспечивает:
+## 4) Схема выборок AD7380 (по ADR-006 — TIM3 PWM(CS) + TIM3_UP→DMA→SPI)
+Ниже — схема выборок **как источник правды по механике семплирования** (см. `docs/decisions/ADR-006_AD7380_TIM3_DMA_Sampling.md`), согласованная с ограничениями RT/safety из ADR по наблюдаемости (в fast/ISR только O(1) работа в SRAM; никакого UART/QSPI). Схема обеспечивает:
 - повторяемую фазу выборок относительно периода PWM;
 - формирование “средних по периоду PWM” (см. `docs/PROJECT_CONTEXT.md` / инвариант измерений);
 - возможность включать “Scope” (pre/post окна) без влияния на shutdown-path.
 
 ### 4.1) Предпосылки/assumptions (явные)
-- AD7380 работает в 2-wire режиме; выборка/кадрирование формируется окном `CS` и 16 тактами `SCK` внутри этого окна (конкретика — см. ADR-20260213).
+- AD7380 работает в 2-wire режиме; выборка/кадрирование формируется окном `CS` и 16 тактами `SCK` внутри этого окна (конкретика — см. ADR-006).
 - SPI1 — master, тактирует `SCK` и читает `SDO_A`; SPI2 — slave, синхронно читает `SDO_B` (через аппаратные перемычки `SCK` и `NSS`).
 - На частоте семплирования `f_s=400 кГц` CPU-overhead на каждый семпл = 0 (все транзакции запускаются DMA/таймером); допускаются только редкие события уровня “конец блока” (half/full) в контексте, который не ломает fast домен.
 - Кол-во выборок на период PWM: `N=100` при `f_pwm=4 кГц` → `T_pwm=250 мкс` → `Δt=2.5 мкс`.
@@ -122,7 +122,7 @@ SCK bursts (16 pulses inside CS):
       ████      ████      ████      ████      ████
 ```
 
-### 4.3) Роли таймеров и событий (конкретизация по ADR-20260213)
+### 4.3) Роли таймеров и событий (конкретизация по ADR-006)
 **Шаг 1 — PWM период / `fast_seq`**
 - TIM1: center-aligned; `RCR=1` (1 Update/UEV на полный up+down цикл).
 - `fast_seq`: аппаратный счётчик `TIM1 TRGO=Update` (см. ADR), читается O(1).
@@ -141,7 +141,7 @@ SCK bursts (16 pulses inside CS):
 - SPI2:
   - slave, принимает одно 16-бит слово (`SDO_B`) синхронно со SPI1 → DMA(P2M).
 
-Примечание: порядок старта DMA критичен (см. ADR-20260213): SPI2_RX DMA должна быть взведена до первого кадра, иначе возможна потеря старших бит/слов.
+Примечание: порядок старта DMA критичен (см. ADR-006): SPI2_RX DMA должна быть взведена до первого кадра, иначе возможна потеря старших бит/слов.
 
 ### 4.4) DMA/буферы и вычисление “средних по периоду”
 **Данные**

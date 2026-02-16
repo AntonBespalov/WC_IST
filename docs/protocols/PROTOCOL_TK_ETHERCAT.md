@@ -1,7 +1,7 @@
 # Протокол обмена с ТК по EtherCAT PDO (Источник ↔ Технологический комплекс)
 
 Этот документ — единственный источник правды по формату PDO, таймингам, кодам статуса и политике ошибок **для профиля EtherCAT**.
-Целевое решение по интерфейсу: см. `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`.
+Целевое решение по интерфейсу: см. `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`.
 
 Ключевое правило (важно):
 - **Перечень данных и их семантика** берутся из `docs/protocols/PROTOCOL_TK.md` (исторически CAN-профиль).

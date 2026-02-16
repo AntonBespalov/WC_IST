@@ -1,4 +1,4 @@
-# ADR-20260209 — Выбор MCU: STM32G474 vs STM32H723
+# ADR-002 — Выбор MCU: STM32G474 vs STM32H723
 
 Статус: draft  
 Дата: 2026-02-09  

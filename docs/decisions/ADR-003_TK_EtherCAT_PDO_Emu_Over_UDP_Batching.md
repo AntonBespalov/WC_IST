@@ -1,9 +1,9 @@
-# ADR-20260209 — Имитация EtherCAT PDO: PCcom4 по USB-UART (stream)
+# ADR-003 — Имитация EtherCAT PDO: PCcom4 по USB-UART (stream)
 
 Статус: draft  
 Дата: 2026-02-09  
 Владелец: Bespalov  
-Связано: `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`, TBD (issue/PR)  
+Связано: `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`, TBD (issue/PR)  
 
 ---
 

@@ -55,7 +55,7 @@
 
 ## 1.4 EtherCAT PDO / COMX 100CA-RE (P0)
 
-Источник решения: `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`.
+Источник решения: `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`.
 
 Нужно зафиксировать, чтобы реализация EtherCAT (COMX↔FMC) и тесты были возможны без “догадок”:
 

@@ -1,4 +1,4 @@
-# ADR-20260213-logging-psram-uart-window — Logging windowed via PSRAM + UART
+# ADR-007 — Logging windowed via PSRAM + UART
 
 Статус: draft  
 Дата: 2026-02-13  

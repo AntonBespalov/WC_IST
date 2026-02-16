@@ -1,4 +1,4 @@
-# ADR-20260213-ad7380-tim3-dma-sampling — AD7380 sampling via TIM3 PWM + DMA (100 samples per PWM period)
+# ADR-006 — AD7380 sampling via TIM3 PWM + DMA (100 samples per PWM period)
 
 Статус: draft  
 Дата: 2026-02-13  

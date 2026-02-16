@@ -1,7 +1,7 @@
 # Протокол обмена с ТК (Источник ↔ Технологический комплекс)
 
 Этот документ — источник правды **для профиля CAN FD** (формат кадров, тайминги, коды статуса и политика ошибок).
-Целевой/штатный интерфейс взаимодействия с ТК — **EtherCAT PDO** (см. `docs/decisions/ADR-20260210-tk-interface-ethercat-comx-fmc-and-uart-pdo-emu.md`); спецификация EtherCAT PDO — в `docs/protocols/PROTOCOL_TK_ETHERCAT.md`.
+Целевой/штатный интерфейс взаимодействия с ТК — **EtherCAT PDO** (см. `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`); спецификация EtherCAT PDO — в `docs/protocols/PROTOCOL_TK_ETHERCAT.md`.
 
 Любые изменения CAN-профиля требуют обновления этого документа и тестов.
 
