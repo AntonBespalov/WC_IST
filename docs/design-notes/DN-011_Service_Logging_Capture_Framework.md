@@ -18,6 +18,7 @@
 - **PWM-домен 1–4 кГц** (fast loop) — детерминированный, без RTOS;
 - **slow loop на FreeRTOS** — протокол/диагностика/логирование/сервис.
 Нельзя ухудшить детерминизм fast loop и путь безопасного отключения (BKIN/BKIN2). Наблюдаемость является частью архитектуры (см. принципы наблюдаемости/record-replay).
+Единая метка времени в телеметрии — `SvcTs v1` (ts_us 1 МГц + pwm_period_cnt), источник `ts_us`: **TIM5**.
 
 ---
 
@@ -49,7 +50,7 @@ Record содержит:
 - `type` (PDO / CTRL / ADC_RAW / SLOW_MEAS / META / …),
 - `source_id`,
 - `len`,
-- `timestamp` (привязанный к PWM-домену: `pwm_period_count` + опц. subtick),
+- `timestamp` (SvcTs v1: `ts_us` 1 МГц + `pwm_period_cnt`, wrap-around допустим),
 - `seq` (для диагностики потерь/перестановок),
 - `payload`,
 - опционально `crc` (считается/проверяется в slow loop).
@@ -101,25 +102,26 @@ Record содержит:
 - верхний протокол и producers не меняются.
 
 ### 3.5. Протокол управления логгером поверх PCcom4
-Добавляем/фиксируем командный набор (поверх PCcom4):
-- `LOG_LIST_SOURCES`, `LOG_LIST_CHANNELS(source_id)`;
-- `LOG_SET_SOURCE_ENABLE(source_id, en)`;
-- `LOG_SET_RATE(source_id, decimation_or_hz)`;
-- `LOG_SET_PROFILE(source_id, profile_id)` (минимум для CTRL/SLOW_MEAS);
-- (опц., этап-2) `LOG_SET_CHANNEL_MASK(source_id, channel_id[])`;
-- `LOG_ARM(session_cfg)`, `LOG_TRIGGER(reason)`, `LOG_STOP()`, `LOG_CLEAR()`;
-- `LOG_GET_STATUS()` (including overrun/dropped/incomplete);
-- `LOG_GET_META(session_id)`;
-- `LOG_READ_CHUNK(session_id, offset, max_len)` → возвращает кусок bytes.
+Операции узла `Node=0x06` (см. `docs/protocols/PCCOM4.02_PROJECT.md`):
+- `Scope.StreamControl`, `Scope.SignalMask`, `Scope.Decimation`, `Scope.TriggerConfig`;
+- `Scope.CaptureArm`, `Scope.CaptureRead`, `Scope.CaptureAbort`;
+- `Scope.CaptureMeta` (метаданные захвата отдельно от RAW чанков);
+- `Scope.Stats`;
+- `Scope.Data` (dataset `0x01` — Control vars stream, `0x02` — RAW capture chunk).
+
+Примечания:
+- RAW v1 минимальный (без `total/pre/post/...` в каждом чанке); метаданные выдаются `Scope.CaptureMeta`.
+- Все Device→Host сообщения `Node=0x03/0x06` содержат `SvcTs v1`.
 
 
 ### 3.6. Арбитраж трафика и квотирование полосы (чтобы логи не «забили» PDO)
 Так как PDO-эмуляция и логи идут по одному физическому каналу (FT232H), транспорт обязан обеспечивать **жёсткий приоритет** управляющего обмена.
 
 Правила транспорта (slow loop):
-- две независимые очереди/потока на отправку: `TX_PDO` и `TX_LOG` (не один общий FIFO);
-- если в `TX_PDO` есть кадры — отправлять их **первее** логов;
-- логи отправлять только когда канал свободен и нет ожидающих PDO.
+- три независимые очереди на отправку: `Q0(P0)`, `Q1(P1)`, `Q2(P2)` (не один общий FIFO);
+- `P0` — PDO emu (`CmdWeld/FbStatus/Fault`), `P1` — Control vars stream, `P2` — RAW capture;
+- пока есть `P0`, `P1/P2` не вытесняют `P0`;
+- при дефиците полосы/буферов сначала деградирует `P2`, затем `P1`.
 
 Дополнительно вводится **квотирование полосы** для логов (token bucket/байтовый бюджет), например:
 - за каждый 250 мкс тик (4 кГц) начислять `log_budget_bytes` (частота тика должна соответствовать `logging_tx_scheduler`),
@@ -200,7 +202,10 @@ PSRAM backend обязан:
    Митигируем: SPSC ring между ISR→task, отсутствие mutex в fast контуре; минимизация критических секций.
 
 5) **Смешение таймбаз разных доменов.**  
-   Митигируем: timestamp в единицах PWM-period (и/или микросекунды с явной привязкой), документирование.
+   Митигируем: единый `SvcTs v1` (ts_us + pwm_period_cnt), документирование wrap-around и расчётов по модулю.
+
+7) **Недостаточный SRAM-буфер.**  
+   Митигируем: уменьшение `post`, при нехватке `pre` — отказ `capture_arm` + счётчик `NO_SPACE`.
 
 6) **Потеря целостности сессии при reset/fault.**  
    Митигируем: `session_state`, признак `incomplete`, запись META в начале/в конце, counters.
@@ -214,6 +219,8 @@ PSRAM backend обязан:
   - тесты SPSC ring (FIFO order, overflow policy, wrap-around);
   - тесты packer (профили/списки каналов → корректная упаковка records);
   - тесты сериализации PCcom4 команд логгера (round-trip).
+  - `SvcTs v1`: монотонность/ wrap-around; согласованность с `pwm_period_cnt`.
+  - `Scope.CaptureMeta`: корректные `total/pre/post`, флаг `POST_REDUCED`/`NO_SPACE`.
 - SIL:
   - record/replay для `CTRL` и `PDO`: воспроизведение управляющих сценариев и сравнение выходов (duty/state/fault).
   - проверка, что dropped/overrun корректно отражается в статусе.

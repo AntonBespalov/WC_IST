@@ -53,6 +53,16 @@
   - post-window после trigger;
   - выгрузка по запросу чанками;
   - live RAW stream допускается только с decimation и backpressure.
+- Окна по умолчанию: `pre = 5 мс` (фиксировано), `post = 200 мс` (минимум).
+- Буфер SRAM по умолчанию: **20 КБ**.
+- Если окно не помещается: уменьшаем `post` до вместимости; если не хватает даже на `pre` → `capture_arm` отклоняется (`NO_SPACE`, счётчик).
+- Повторные trigger в `CAPTURING` **игнорируются**.
+
+### 4.4) Единая метка времени (SvcTs v1)
+- Для всех Device→Host сообщений узлов `0x03` и `0x06` добавляется заголовок **SvcTs v1**:
+  - `ts_us` (u32, 1 МГц, монотонно; wrap-around допустим);
+  - `pwm_period_cnt` (u32, счётчик периодов ШИМ; wrap-around допустим).
+- Источник `ts_us`: **TIM5**, настроенный на 1 МГц.
 
 ## 5) Rationale (почему так)
 - Один канал FT232H ограничен по полосе и чувствителен к burst-нагрузке.
@@ -75,8 +85,11 @@
   - `Scope.CaptureArm`
   - `Scope.CaptureRead`
   - `Scope.CaptureAbort`
+  - `Scope.CaptureMeta`
   - `Scope.Stats`
 - Для `Node=0x03` явно фиксируется приоритет P0 и правила при перегрузе.
+- Вводится единый заголовок **SvcTs v1** для Device→Host сообщений `Node=0x03/0x06`.
+- RAW v1 минимальный; расширенные метаданные выдаются отдельной командой `Scope.CaptureMeta`.
 - Добавляются счётчики наблюдаемости и деградации:
   - `cnt_p1_drop`, `cnt_p2_drop`
   - `q0/q1/q2_highwater`
@@ -108,6 +121,14 @@
 - Риск: недовыгрузка observability.
 - Митигатор: ограничение нагрузки, адаптивный decimation, сигнализация о деградации.
 
+### R5) Wrap-around SvcTs
+- Риск: переполнение `ts_us`/`pwm_period_cnt` и неверные расчёты на ПК.
+- Митигатор: документированный wrap-around + расчёт разностей по модулю.
+
+### R6) Недостаточный буфер SRAM
+- Риск: невозможность гарантировать окно capture.
+- Митигатор: уменьшение `post`, либо отказ `capture_arm` при нехватке под `pre`.
+
 ## 9) Test plan / Proof
 
 ### 9.1) Host unit (L1)
@@ -116,6 +137,8 @@
 - Валидация `Node=0x06` конфигурации: mask/decimation/trigger/pre/post/ranges.
 - Capture FSM: `IDLE -> ARMED -> CAPTURING -> FROZEN -> READOUT`, abort-path.
 - Scheduler policy: при конкуренции трафика P0 всегда обслуживается первым; P1/P2 корректно деградируют.
+- `SvcTs v1`: монотонность и wrap-around для `ts_us`/`pwm_period_cnt`.
+- `Scope.CaptureMeta`: согласованность `total/pre/post` с фактическим окном, корректный `post`-reduce.
 
 ### 9.2) On-target (L3)
 - Измерения на `DBG0/DBG1` и обязательных точках:
@@ -135,12 +158,14 @@
 6. Ошибка backend storage (timeout/fault) во время выгрузки.
 7. Некорректная конфигурация capture (out-of-range).
 8. Обрыв сервис-канала в середине readout.
+9. Недостаточный буфер SRAM → `post` уменьшается и отражается в `CaptureMeta`.
 
 ### 9.4) Критерии приёмки
 - `PDO emu` реально обслуживается первым под нагрузкой.
 - Нет регрессии shutdown latency `BKIN_RAW -> PWM_OUT`.
 - Нет ухудшения fast-loop детерминизма сверх зафиксированного порога.
 - Все деградации observability отражаются счётчиками/флагами.
+- `SvcTs v1` присутствует во всех Device→Host сообщениях `Node=0x03/0x06`.
 
 ## 10) Rollback
 - Feature flags:
@@ -165,8 +190,7 @@
 5. Выполнить on-target измерения и зафиксировать evidence.
 
 ## 12) Открытые вопросы (TBD)
-- Дефолтные значения pre/post window (мс/сэмплы).
-- Финальная версия формата RAW sample payload (versioning/endianness/channels).
+- Авто-определение свободной SRAM и динамический выбор размера буфера.
 - Политика saturating vs wrap-around для отдельных статистических счётчиков.
 
 ## 13) Доп. детализация Logging/Capture Core
@@ -205,9 +229,9 @@
 - `stream_set_mask(mask)` / `stream_set_decimation(n)` / `stream_enable(on)`.
 
 ### 13.3) Модель памяти
-- **SRAM ring:** быстрый pre-buffer и staging.
+- **SRAM ring:** быстрый pre-buffer и staging; дефолтный объём 20 КБ; `post` может уменьшаться для вмещения.
 - **Storage backend (опционально PSRAM):** хранение завершённых capture-окон.
-- **Meta block:** отдельный заголовок (`capture_id`, `sample_rate`, `trigger_index`, `total_samples`, `flags`, `crc`).
+- **Meta block:** отдельный заголовок и выдача метаданных через `Scope.CaptureMeta`.
 
 ### 13.4) Политика backpressure
 - рост `Q2` -> уменьшение chunk размера/частоты, затем дропы `Q2` (`cnt_p2_drop++`);
@@ -218,8 +242,7 @@
 - Источники trigger: `manual`, `weld_start`, `fault_entry`.
 - Приоритет trigger: `fault_entry > weld_start > manual`.
 - Повторные trigger в `CAPTURING`:
-  - либо игнор;
-  - либо “перевооружение” post-window (выбирается проектно и фиксируется в профиле).
+  - игнор.
 
 ### 13.6) Диагностические метрики (минимум)
 - парсер: `rx_ok`, `rx_crc_err`, `parser_resync_count`;
