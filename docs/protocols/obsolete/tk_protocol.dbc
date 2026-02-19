@@ -34,9 +34,11 @@ BS_:
 
 BU_: TK SRC
 
-CM_ "DBC для протокола ТК↔ИСТ. Каноника byte-layout: `docs/protocols/PROTOCOL_TK.md` / раздел 1.2 (Spec-lock Draft 0.2.2, SW-0). Endianness: Intel (LE) для всех multi-byte полей, включая SERVICE_REQ/RESP.";
+CM_ "OBSOLETE: legacy CAN DBC. Документ перенесён в docs/protocols/obsolete/ и больше не является источником правды. Актуальный протокол обмена с ТК: docs/protocols/PROTOCOL_TK_ETHERCAT.md.";
 
-CM_ "Важно: DBC фиксирует раскладку/масштабы, но не выражает все правила валидатора (MUST=0, seq-policy, gating ManualDuty и т.п.). Каноника поведения — в `docs/protocols/PROTOCOL_TK.md`.";
+CM_ "DBC для протокола ТК↔ИСТ. Каноника byte-layout: `docs/protocols/obsolete/PROTOCOL_TK.md` / раздел 1.2 (Spec-lock Draft 0.2.2, SW-0). Endianness: Intel (LE) для всех multi-byte полей, включая SERVICE_REQ/RESP.";
+
+CM_ "Важно: DBC фиксирует раскладку/масштабы, но не выражает все правила валидатора (MUST=0, seq-policy, gating ManualDuty и т.п.). Каноника поведения — в `docs/protocols/obsolete/PROTOCOL_TK.md`.";
 
 VAL_ 48 state 0 "IDLE" 1 "ARMED" 2 "WELD" 3 "FAULT";
 VAL_ 16 state 0 "IDLE" 1 "ARMED" 2 "WELD" 3 "FAULT";
@@ -120,7 +122,7 @@ BO_ 112 SERVICE_RESP: 8 SRC
  SG_ duty_used_permille     : 32|16@1+ (1,0) [0|1000] "permille" TK
  SG_ age_ms                 : 48|16@1+ (1,0) [0|65535] "ms" TK
 
-CM_ BO_ 32 "CMD_WELD (ТК→Источник), realtime 1 kHz. Каноника валидатора: `docs/protocols/PROTOCOL_TK.md` / разделы 1.2 и 3. В Draft 0.2.x flags/crc/reserved* MUST=0.";
+CM_ BO_ 32 "CMD_WELD (ТК→Источник), realtime 1 kHz. Каноника валидатора: `docs/protocols/obsolete/PROTOCOL_TK.md` / разделы 1.2 и 3. В Draft 0.2.x flags/crc/reserved* MUST=0.";
 CM_ SG_ 32 mode "0=IDLE, 1=ARMED, 2=WELD. Валидация/согласованность с enable — см. PROTOCOL_TK.md / 3.2.";
 CM_ SG_ 32 I_ref_cmd_mA "Уставка тока (mA). В Draft 0.2.x валидный диапазон 0..50_000_000 mA; отрицательные значения — ошибка формирования команды (REJECT).";
 CM_ SG_ 32 flags "Draft 0.2.x: MUST=0. Ненулевое значение ⇒ REJECT.";
@@ -154,3 +156,4 @@ CM_ SG_ 96 flags "Draft 0.2.x: MUST=0. Ненулевое значение ⇒ R
 CM_ SG_ 96 reserved "Draft 0.2.x: MUST=0. Ненулевое значение ⇒ REJECT.";
 
 CM_ BO_ 112 "SERVICE_RESP (Источник→ТК), сервисный ответ/телеметрия. flags bit0 = MANUAL_DUTY_ACTIVE, остальные MUST=0 (см. PROTOCOL_TK.md / 8.5).";
+

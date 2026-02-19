@@ -15,7 +15,7 @@
 3) `docs/ARCHITECTURE.md` — модульные границы, тестируемость (host/SIL/HIL/on-target)
 4) `docs/SAFETY.md` — расширенная политика аварий/восстановления (если есть)
 5) `docs/ENGINEERING_CONTRACT.md` — общий инженерный контракт разработки (defensive design, safety/RT, proof)
-6) `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
+6) `docs/protocols/PROTOCOL_TK_ETHERCAT.md` — протокол обмена с ТК (EtherCAT PDO)
 7) `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (плата ↔ ПК по USB-UART)
 8) `docs/TEST_PLAN.md` — план тестов/матрица требований (если есть)
 9) `docs/PROMPT_TEMPLATES.md` — шаблоны запросов к Codex/LLM
@@ -140,7 +140,7 @@ M5) **Критерий “готово” (proof/done)**: как проверя�
 
 Если меняются железо/тайминги/политика аварий — обновить:
 - `docs/PROJECT_CONTEXT.md` (обязательно)
-- при необходимости `docs/GLOSSARY.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK.md`, `docs/protocols/PCCOM4.02.md`, `docs/TEST_PLAN.md`
+- при необходимости `docs/GLOSSARY.md`, `docs/ARCHITECTURE.md`, `docs/SAFETY.md`, `docs/protocols/PROTOCOL_TK_ETHERCAT.md`, `docs/protocols/PCCOM4.02.md`, `docs/TEST_PLAN.md`
 
 ---
 
@@ -196,3 +196,4 @@ M5) **Критерий “готово” (proof/done)**: как проверя�
 > Найди риски/гонки/тайминги/нарушение safety-инвариантов и дай план воспроизведения/доказательства.
 
 Конец.
+

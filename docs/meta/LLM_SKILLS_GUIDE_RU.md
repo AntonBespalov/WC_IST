@@ -67,7 +67,7 @@ Skill **не должен**:
 - `docs/ARCHITECTURE.md`
 - `docs/SAFETY.md`
 - `docs/TEST_PLAN.md`
-- `docs/protocols/PROTOCOL_TK.md`
+- `docs/protocols/PROTOCOL_TK_ETHERCAT.md`
 - `docs/protocols/PCCOM4.02.md`
 
 ---
@@ -184,3 +184,4 @@ Skill **не должен**:
 - стабилизации качества ответов
 - снижения риска регрессий
 - единого инженерного стиля работы с LLM
+

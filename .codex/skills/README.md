@@ -14,7 +14,7 @@ Skills версионируются вместе с проектом.
 - `docs/GLOSSARY.md` — единые определения терминов
 - `docs/ARCHITECTURE.md` — модульные границы и тестируемость (host/SIL/HIL/on-target)
 - `docs/SAFETY.md` — классы аварий, latch/recovery, watchdog, shutdown-path
-- `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК (CAN)
+- `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* — протокол обмена с ТК (CAN)
 - `docs/protocols/PCCOM4.02.md` — протокол плата ↔ ПК (USB-UART, PCcom4)
 - `docs/protocols/PCCOM4.02_PROJECT.md` — профиль проекта поверх PCcom4 (узлы/операции/форматы)
 - `docs/TEST_PLAN.md` — уровни тестирования и регрессия
@@ -138,3 +138,4 @@ Skills версионируются вместе с проектом.
 - Skills — это правила работы, а не документация по железу.
 - Данные и “источники правды” живут в `docs/`.
 - Любое изменение политики аварий/таймингов должно обновлять и код, и `docs/PROJECT_CONTEXT.md` (+ при необходимости `docs/SAFETY.md`).
+

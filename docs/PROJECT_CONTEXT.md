@@ -92,15 +92,15 @@
 
 ## 5) Интерфейсы и обмен
 - Основной интерфейс с ТК: **EtherCAT PDO** через **COMX 100CA-RE ↔ FMC** (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`, `docs/decisions/ADR-004_TK_Interface_EtherCAT_COMX_FMC_and_UART_PDO_Emu.md`)
-- Legacy/fallback (если включён): **CAN FD** профиль (см. `docs/protocols/PROTOCOL_TK.md`)
+- Legacy/fallback (если включён): **CAN FD** *(устар.)* профиль (см. `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)*)
 - Формат обмена:
   - Команда: `I_ref_cmd`, `enable`, `seq` (и опциональные лимиты)
   - Ответ: `seq_applied`, `I_ref_used`, `I_per`, `U_per`, `state`, `fault_word`, `limit_word`, счётчики ошибок
 - Политика таймаутов:
-  - Soft-timeout: **5 мс** (Draft 0.2) → controlled stop / спад `I_ref_used` по политике
-  - Hard-timeout: **20 мс** (Draft 0.2) → **запрет сварки + FAULT** (latch по политике)
-  - Legacy CAN: bus-off/ошибки линии: **без ABOM** (Draft 0.2), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/PROTOCOL_TK.md` и `docs/SAFETY.md`)
-- Интерфейс “плата ↔ ПК” по USB-UART: **FT232H** + **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой CAN-кадров для legacy CAN, см. `docs/protocols/PCCOM4.02.md`)
+  - Soft-timeout: **5 мс** (Draft 0.2) → C1 controlled ramp down: `T_ramp_ms` = **10 мс** (диапазон **10–20 мс**), отмена не допускается; после ramp — PWM off + DRV_EN/INH off (если возможно)
+  - Hard-timeout: **20 мс** (Draft 0.2) → немедленный программный OFF + **FAULT** (latch по политике); если hard-timeout наступил раньше завершения ramp — ramp прерывается
+  - legacy CAN *(устар.)*: bus-off/ошибки линии: **без ABOM** (Draft 0.2), восстановление с backoff **250 мс** (настраиваемо 100–500 мс), без “спама” в шину (см. `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* и `docs/SAFETY.md`)
+- Интерфейс “плата ↔ ПК” по USB-UART: **FT232H** + **PCcom4** (настройка/осциллографирование/логирование; режим отладки с обёрткой legacy CAN-кадров *(устар.)*, см. `docs/protocols/PCCOM4.02.md`)
 - Неволатильные настройки/калибровки:
   - Хранение: **внутренняя Flash** МК (проектный NVM storage).
   - Safety-инвариант: запись во Flash разрешена **только** в `IDLE` (PWM OFF, сварка запрещена).
@@ -160,10 +160,12 @@
 - Архитектура ПО: `docs/ARCHITECTURE.md`
 - Политика безопасности/аварий: `docs/SAFETY.md`
 - Протокол ТК (EtherCAT PDO): `docs/protocols/PROTOCOL_TK_ETHERCAT.md`
-- Протокол ТК (CAN, legacy/fallback): `docs/protocols/PROTOCOL_TK.md`
 - Протокол плата ↔ ПК (USB-UART, PCcom4): `docs/protocols/PCCOM4.02.md`
 - План тестов: `docs/TEST_PLAN.md`
 - Skills: `.codex/skills/README.md`
 - Design Notes: `docs/design-notes/DN-002_MFDC_ManualDuty_Service_Mode.md`
+
+
+
 
 

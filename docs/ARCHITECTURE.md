@@ -76,7 +76,7 @@
 - не содержит бизнес-логики фильтров
 
 3) `comms_hal`
-- EtherCAT (COMX/FMC) транспорт для RxPDO/TxPDO (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`) + (опц.) legacy CAN FD драйвер/очереди (см. `docs/protocols/PROTOCOL_TK.md`)
+- EtherCAT (COMX/FMC) транспорт для RxPDO/TxPDO (см. `docs/protocols/PROTOCOL_TK_ETHERCAT.md`) + (опц.) legacy CAN FD *(устар.)* драйвер/очереди (см. `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)*)
 - “сырой” транспорт для `protocol_core`
 
 4) `watchdog_hal`
@@ -161,7 +161,7 @@
 - HIL — основной источник уверенности до включения силовой части.
 
 ### 4.4 On-target интеграция
-- проверка SPI/DMA, TIM1, EtherCAT (COMX/FMC), RTOS (и legacy CAN-FD, если включён)
+- проверка SPI/DMA, TIM1, EtherCAT (COMX/FMC), RTOS (и legacy CAN-FD *(устар.)*, если включён)
 - доказательство таймингов через debug GPIO/trace
 
 ### 4.5 Power bench / system tests
@@ -193,4 +193,7 @@
 Любое изменение модульных границ, таймингов, safety-инвариантов:
 - требует обновления этого документа и `docs/PROJECT_CONTEXT.md`
 - требует плана тестов (SIL/HIL/on-target) и критериев приёмки
+
+
+
 

@@ -5,7 +5,7 @@
 
 Примечание: папки `obsolete/` (например `docs/**/obsolete/`) — архив. Их содержимое не является каноникой и не должно использоваться как источник требований/решений.
 
-Статус индекса: обновлено на **2026-02-13**.
+Статус индекса: обновлено на **2026-02-19**.
 
 ---
 
@@ -59,9 +59,19 @@
 ---
 
 ## Протоколы и интерфейсы
-- `docs/protocols/PROTOCOL_TK.md` — протокол обмена с ТК по CAN (legacy/fallback): кадры/таймауты/seq/CRC/сценарии.
+- `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* — протокол обмена с ТК по CAN (legacy/fallback): кадры/таймауты/seq/CRC/сценарии.
 - `docs/protocols/PROTOCOL_TK_ETHERCAT.md` — протокол обмена с ТК по EtherCAT PDO (RxPDO/TxPDO, валидаторы/таймауты, сценарии).
-- `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART плата ↔ ПК): настройка/логирование/отладка (в т.ч. обёртка CAN-кадров).
+- `docs/protocols/PCCOM4.02.md` — протокол PCcom4 (USB-UART плата ↔ ПК): настройка/логирование/отладка (в т.ч. обёртка legacy CAN-кадров *(устар.)*).
 - `docs/protocols/PCCOM4.02_PROJECT.md` — профиль проекта поверх PCcom4: узлы/операции/форматы данных, сервисные режимы.
-- `docs/protocols/tk_protocol.dbc` — DBC-описание CAN/CAN FD протокола для декодирования/сниффинга (сейчас скелет, до фиксации байтовой раскладки полей).
-- `docs/protocols/CAN_LOGGING_HOWTO_RU.md` — как снимать/хранить логи CAN/CAN FD (candump/pcapng/ASC) для анализа и V&V.
+- `docs/protocols/obsolete/tk_protocol.dbc` *(устар.)* — DBC-описание CAN/CAN FD протокола для декодирования/сниффинга (сейчас скелет, до фиксации байтовой раскладки полей).
+- `docs/protocols/obsolete/CAN_LOGGING_HOWTO_RU.md` *(устар.)* — как снимать/хранить логи CAN/CAN FD (candump/pcapng/ASC) для анализа и V&V.
+
+---
+
+## Логирование / Осциллографирование
+- `docs/LOGGING_CAPTURE_GUIDE_RU.md` — руководство по механизму логирования/захвата (PCcom4 Scope): настройка, расширение, протокол.
+- `docs/design-notes/DN-014_PSRAM_Logging_Backend_Plan.md` — план расширения логирования: PSRAM backend (draft).
+- `docs/design-notes/DN-022_EtherCAT_Log_Stream_and_Multi_Capture_Spec.md` — spec: EtherCAT‑лог‑стрим + multi‑session capture.
+
+
+

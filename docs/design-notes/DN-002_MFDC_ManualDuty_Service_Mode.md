@@ -78,7 +78,7 @@
 3) Watchdog/reset сценарий (безопасное поведение, без авто-возобновления энергии).  
 4) Service timeout > 20 мс по интерфейсу активации.  
 5) `ADC invalid/stuck`.  
-6) Если источник команд — ТК (EtherCAT PDO): таймаут/останов обновления PDO в режиме `ManualDuty`. Если включён legacy CAN — CAN timeout/bus-off в режиме `ManualDuty`.
+6) Если источник команд — ТК (EtherCAT PDO): таймаут/останов обновления PDO в режиме `ManualDuty`. Если включён legacy CAN *(устар.)* — CAN timeout/bus-off в режиме `ManualDuty`.
 
 ---
 
@@ -86,4 +86,5 @@
 
 - Отключить `ManualDuty` сервисной командой “disable” и убедиться, что источник вернулся в safe state/IDLE.
 - В случае регрессии — отключить доступность команды `ManualDuty` (feature flag/compile-time) без изменения аппаратного shutdown-пути.
+
 

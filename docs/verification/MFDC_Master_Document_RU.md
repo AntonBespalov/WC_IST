@@ -152,7 +152,7 @@ HIL используется для проверки:
 ## 7. On-target интеграционные тесты
 
 - синхронизация ADC + DMA;
-- EtherCAT (COMX/PDO) под нагрузкой (и legacy CAN, если включён);
+- EtherCAT (COMX/PDO) под нагрузкой;
 - watchdog и reset-recovery.
 
 ---
@@ -205,3 +205,4 @@ Hazard → Safety mechanism → Test case.
 обязывает повторный прогон SIL + HIL.
 
 ---
+

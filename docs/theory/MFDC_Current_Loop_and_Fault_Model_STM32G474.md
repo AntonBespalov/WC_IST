@@ -313,7 +313,7 @@
 ### RTOS слой
 - агрегирует fault-слова (fast + slow)
 - управляет состояниями FSM (ABORT/FAULT/IDLE)
-- отправляет в ТК (EtherCAT TxPDO; при наличии legacy CAN — соответствующий профиль):
+- отправляет в ТК (EtherCAT TxPDO; при наличии legacy CAN *(устар.)* — соответствующий профиль):
   - `status_word`
   - `fault_word`
   - `limit_word`
@@ -363,7 +363,7 @@
 - Длительная работа в `u_max` без windup (проверка AW)
 - Переключение профилей трансформатора (устойчивость параметров)
 - Инжекция faults: driver fault, ADC timeout, OC
-- Проверка latch/reset политики и отчётов в ТК (EtherCAT/legacy CAN)
+- Проверка latch/reset политики и отчётов в ТК (EtherCAT/legacy CAN *(устар.)*)
 
 ---
 
@@ -379,3 +379,4 @@
 ---
 
 Конец документа.
+

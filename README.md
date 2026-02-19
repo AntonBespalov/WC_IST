@@ -14,7 +14,7 @@
 4) Термины: `docs/GLOSSARY.md`.
 5) Архитектура (fast/slow домены, тестируемость): `docs/ARCHITECTURE.md`.
 6) Safety (классы аварий, latch/recovery, shutdown-path): `docs/SAFETY.md`.
-7) Протокол обмена с ТК (CAN): `docs/protocols/PROTOCOL_TK.md`.
+7) Протокол обмена с ТК (CAN): `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)*.
 8) Протокол “плата ↔ ПК” по USB-UART (PCcom4): `docs/protocols/PCCOM4.02.md`.
 9) Верификация/минимальная регрессия: `docs/TEST_PLAN.md`.
 
@@ -31,3 +31,4 @@
 
 - Если изменение затрагивает железо/тайминги/safe state/аварии/протокол — сперва свериться с `docs/PROJECT_CONTEXT.md` и связанными документами (см. `docs/README.md`).
 - Для safety/таймингов обязательны измеримые доказательства и сценарии fault‑injection (см. `docs/SAFETY.md` и `docs/TEST_PLAN.md`).
+

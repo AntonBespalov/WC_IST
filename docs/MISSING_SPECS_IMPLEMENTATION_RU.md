@@ -12,7 +12,7 @@
 
 ---
 
-## 1) Legacy протокол CAN/CAN FD (fallback) (P0)
+## 1) Legacy протокол CAN/CAN FD *(устар.)* (fallback) (P0)
 
 ### 1.1 Сериализация payload по байтам (P0)
 
@@ -24,8 +24,8 @@
 - поведение при несовместимости версии (если будет версионирование).
 
 Ссылки:
-- `docs/protocols/PROTOCOL_TK.md:1` (Draft 0.2, единицы тока = mA, `int32_t`).
-- `docs/protocols/tk_protocol.dbc` — сейчас скелет, ожидает фиксирования байтовой раскладки.
+- `docs/protocols/obsolete/PROTOCOL_TK.md (устар.):1` (Draft 0.2, единицы тока = mA, `int32_t`).
+- `docs/protocols/obsolete/tk_protocol.dbc` *(устар.)* — сейчас скелет, ожидает фиксирования байтовой раскладки.
 
 Шаблон таблицы (заполнить для каждого сообщения):
 - CAN-ID: `0x___`, имя: `_____`, DLC: `__`
@@ -41,7 +41,7 @@
 - диапазон `max_slew_rate_mA_ms` (и поведение при 0/отрицательных/слишком больших),
 - если `limits` расширяются: что именно входит в кадр и как валидируется.
 
-Ссылки: `docs/protocols/PROTOCOL_TK.md:80`, `docs/protocols/PROTOCOL_TK.md:81`.
+Ссылки: `docs/protocols/obsolete/PROTOCOL_TK.md (устар.):80`, `docs/protocols/obsolete/PROTOCOL_TK.md (устар.):81`.
 
 ### 1.3 `SERVICE_RESP` и `fault_code` (P0/P1)
 
@@ -49,7 +49,7 @@
 - точный формат `SERVICE_RESP` (минимум для `ManualDuty`: active, duty_used, age_ms),
 - перечень/кодировка `fault_code` (если действительно нужен отдельный enum) и его связь с `fault_word`.
 
-Ссылки: `docs/protocols/PROTOCOL_TK.md:122`, `docs/protocols/PROTOCOL_TK.md:272`.
+Ссылки: `docs/protocols/obsolete/PROTOCOL_TK.md (устар.):122`, `docs/protocols/obsolete/PROTOCOL_TK.md (устар.):272`.
 
 ---
 
@@ -159,8 +159,8 @@
 ### 4.2 Форматы логов CAN (P2)
 
 Рекомендация (уже добавлено):
-- `docs/protocols/CAN_LOGGING_HOWTO_RU.md` — правила записи логов для сниффинга,
-- `docs/protocols/tk_protocol.dbc` — для декодирования.
+- `docs/protocols/obsolete/CAN_LOGGING_HOWTO_RU.md` *(устар.)* — правила записи логов для сниффинга,
+- `docs/protocols/obsolete/tk_protocol.dbc` *(устар.)* — для декодирования.
 
 ---
 
@@ -170,14 +170,16 @@
 - точный механизм recovery: только `fault_reset` в `CMD_WELD` или отдельная service-команда, или оба,
 - условия, при которых recovery разрешён (таймауты, отсутствие fault, задержки).
 
-Ссылки: `docs/SAFETY.md:111`, `docs/protocols/PROTOCOL_TK.md` / раздел 3.
+Ссылки: `docs/SAFETY.md:111`, `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* / раздел 3.
 
 ---
 
 ## 6) Рекомендованный план закрытия пробелов (коротко)
 
-1) Зафиксировать таблицы байтовой раскладки в `docs/protocols/PROTOCOL_TK.md` (P0).
+1) Зафиксировать таблицы байтовой раскладки в `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* (P0).
 2) Создать `docs/HW_IO_MAP.md` (или секцию в `PROJECT_CONTEXT.md`) с GPIO/полярностями/подтяжками/AF/IRQ (P0).
 3) Закрыть TBD по измерениям (N, окна, пороги) и описать диагностику температур/AD7606 (P0/P1).
 4) Определить enum событий DBG0/DBG1 и привязать к тестам (P1).
+
+
 

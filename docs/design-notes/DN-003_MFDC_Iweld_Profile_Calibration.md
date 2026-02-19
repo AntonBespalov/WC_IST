@@ -3,7 +3,7 @@
 Статус: draft  
 Дата: 2026-02-05  
 Владелец: TBD  
-Связано: `docs/PROJECT_CONTEXT.md`, `docs/protocols/PROTOCOL_TK.md`, `docs/protocols/PCCOM4.02.md`  
+Связано: `docs/PROJECT_CONTEXT.md`, `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)*, `docs/protocols/PCCOM4.02.md`  
 
 ---
 
@@ -70,8 +70,8 @@
 #### EtherCAT (ТК)
 Выбор активного `profile_id` должен приходить от ТК по штатному интерфейсу **EtherCAT PDO**. Формат/поле/валидаторы для `profile_id` требуется зафиксировать в `docs/protocols/PROTOCOL_TK_ETHERCAT.md` перед реализацией.
 
-#### Legacy CAN (fallback)
-По legacy CAN разрешён только выбор активного `profile_id`. Рекомендуемый транспорт — сервисный домен `SERVICE_REQ (0x060)` (см. `docs/protocols/PROTOCOL_TK.md` / раздел 8: сервисные команды отделены от 1 кГц домена):
+#### legacy CAN *(устар.)* (fallback)
+По legacy CAN *(устар.)* разрешён только выбор активного `profile_id`. Рекомендуемый транспорт — сервисный домен `SERVICE_REQ (0x060)` (см. `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* / раздел 8: сервисные команды отделены от 1 кГц домена):
 - добавить `svc_op = SET_PROFILE_ID` (opcode назначается проектом);
 - payload содержит `profile_id` (u8) и `svc_seq` (u8);
 - применимость: только при `state=IDLE/safe state`, иначе reject/игнор (без изменения активного профиля);
@@ -85,7 +85,7 @@
   - одинаковый механизм для разных “типов” трансформаторов;
   - отсутствие необходимости сложных моделей/коэффициентов в быстром домене;
   - детерминированную стоимость вычисления (поиск сегмента + линейная арифметика).
-- Запрет записи профиля по интерфейсу ТК (EtherCAT/legacy CAN) снижает риск “случайной конфигурации” и соответствует политике протокола (см. `docs/protocols/PROTOCOL_TK.md` / запрет tuning по CAN).
+- Запрет записи профиля по интерфейсу ТК (EtherCAT/legacy CAN *(устар.)*) снижает риск “случайной конфигурации” и соответствует политике протокола (см. `docs/protocols/obsolete/PROTOCOL_TK.md` *(устар.)* / запрет tuning по CAN).
 - Active/Backup и CRC позволяют пережить power-loss без перехода в неопределённые калибровки (см. `docs/PROJECT_CONTEXT.md` / раздел 5).
 
 ## 5) Interfaces / Data / Timing impact
@@ -94,7 +94,7 @@
   - экстраполяция на краях требует деления на `Δadc_code`; при `num_points>=2` и строгой монотонности `Δadc_code != 0`.
 - EtherCAT:
   - требуется определить транспорт/поле для выбора `profile_id` (зафиксировать в `docs/protocols/PROTOCOL_TK_ETHERCAT.md`).
-- Legacy CAN:
+- legacy CAN *(устар.)*:
   - добавляется сервисная операция выбора `profile_id` в `SERVICE_REQ`.
   - (опционально) расширяется `FB_STATUS` полем `profile_id_active`.
 - PCcom:
@@ -125,3 +125,5 @@
 ## 8) Status / Implementation links
 - Status: draft
 - Links: TBD
+
+
